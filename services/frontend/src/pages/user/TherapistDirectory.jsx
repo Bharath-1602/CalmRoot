@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Globe, BriefcaseIcon, Star, Filter, CalendarDays, Video, Phone, MessageSquare, MapPin, X } from 'lucide-react';
+import { Search, Globe, BriefcaseIcon, Star, Filter, CalendarDays, CheckCircle2, Video, Phone, MessageSquare, MapPin, X } from 'lucide-react';
 import Sidebar from '../../components/shared/Sidebar';
 import BookSessionModal from '../../components/therapist/BookSessionModal';
 import api from '../../lib/axios';
