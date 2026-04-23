@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ShieldCheck, CheckCircle, XCircle } from 'lucide-react';
+import { ShieldCheck, CheckCircle } from 'lucide-react';
 import api from '../../lib/axios';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -8,16 +8,16 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [therapists, setTherapists] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState('');
   const { logout } = useAuth();
   const navigate = useNavigate();
 
   const fetchData = async () => {
     try {
-      // Need to use Auth service for admin viewing therapists
-      const thRes = await api.get('/api/auth/internal/therapists'); 
+      // ✅ Use correct admin endpoint
+      const thRes = await api.get('/api/auth/therapists');
       setTherapists(thRes.data.data || []);
-      
-      // Assume a stats endpoint exists (we created one in therapist service)
+
       const stRes = await api.get('/api/therapist/admin/stats');
       setStats(stRes.data.data);
     } catch (error) {
@@ -33,10 +33,29 @@ const AdminDashboard = () => {
 
   const handleVerify = async (id, status) => {
     try {
-      await api.patch(`/api/auth/therapists/${id}/verify`, { action: status ? 'approve' : 'reject' });
-      fetchData();
+      const res = await api.patch(`/api/auth/therapists/${id}/verify`, { 
+        action: status ? 'approve' : 'reject' 
+      });
+
+      if (res.data.success) {
+        // ✅ Update UI directly without refetching
+        setTherapists(prev => prev.map(t => 
+          t._id === id 
+            ? { ...t, 
+                isVerified: status,
+                therapistProfile: { 
+                  ...t.therapistProfile, 
+                  isVerified: status 
+                }
+              } 
+            : t
+        ));
+        setMessage(status ? '✅ Therapist approved successfully!' : '❌ Therapist revoked!');
+        setTimeout(() => setMessage(''), 3000);
+      }
     } catch (err) {
-      alert('Action failed');
+      setMessage('❌ Action failed. Please try again.');
+      setTimeout(() => setMessage(''), 3000);
     }
   };
 
@@ -45,7 +64,11 @@ const AdminDashboard = () => {
     navigate('/login');
   };
 
-  if (loading) return <div className="min-h-screen bg-bg flex justify-center items-center">Loading...</div>;
+  if (loading) return (
+    <div className="min-h-screen bg-bg flex justify-center items-center">
+      Loading...
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-surface">
@@ -54,37 +77,63 @@ const AdminDashboard = () => {
           <ShieldCheck className="w-6 h-6 text-secondary" />
           WellNest Admin Portal
         </div>
-        <button onClick={handleLogout} className="px-4 py-2 border border-white/20 hover:bg-white/10 rounded font-medium transition-colors">
+        <button 
+          onClick={handleLogout} 
+          className="px-4 py-2 border border-white/20 hover:bg-white/10 rounded font-medium transition-colors"
+        >
           Log Out
         </button>
       </nav>
 
       <main className="max-w-7xl mx-auto p-8 space-y-8">
-        
+
+        {/* ✅ Success/Error Message */}
+        {message && (
+          <div className={`p-4 rounded-xl font-bold text-center ${
+            message.includes('✅') 
+              ? 'bg-success/10 text-success border border-success/20' 
+              : 'bg-danger/10 text-danger border border-danger/20'
+          }`}>
+            {message}
+          </div>
+        )}
+
         {/* STATS */}
         <div className="grid grid-cols-3 gap-6">
           <div className="bg-white p-6 rounded-2xl shadow border border-border">
-            <div className="text-sm font-bold text-muted uppercase tracking-wider mb-2">Total System Sessions</div>
-            <div className="text-4xl font-black text-primary">{stats?.totalSessions || 0}</div>
+            <div className="text-sm font-bold text-muted uppercase tracking-wider mb-2">
+              Total System Sessions
+            </div>
+            <div className="text-4xl font-black text-primary">
+              {stats?.totalSessions || 0}
+            </div>
           </div>
           <div className="bg-white p-6 rounded-2xl shadow border border-border">
-            <div className="text-sm font-bold text-muted uppercase tracking-wider mb-2">Completed This Month</div>
-            <div className="text-4xl font-black text-secondary">{stats?.completedThisMonth || 0}</div>
+            <div className="text-sm font-bold text-muted uppercase tracking-wider mb-2">
+              Completed This Month
+            </div>
+            <div className="text-4xl font-black text-secondary">
+              {stats?.completedThisMonth || 0}
+            </div>
           </div>
           <div className="bg-white p-6 rounded-2xl shadow border border-border">
-            <div className="text-sm font-bold text-muted uppercase tracking-wider mb-2">Pending Verification</div>
+            <div className="text-sm font-bold text-muted uppercase tracking-wider mb-2">
+              Pending Verification
+            </div>
             <div className="text-4xl font-black text-warning">
-              {therapists.filter(t => !t.isVerified).length}
+              {therapists.filter(t => !t.therapistProfile?.isVerified).length}
             </div>
           </div>
         </div>
 
-        {/* VERIFICATION QUEUE */}
+        {/* THERAPIST TABLE */}
         <div className="bg-white rounded-2xl shadow border border-border overflow-hidden">
           <div className="p-6 border-b border-border bg-bg/50">
-            <h2 className="text-xl font-bold text-accent">Therapist Directory Management</h2>
+            <h2 className="text-xl font-bold text-accent">
+              Therapist Directory Management
+            </h2>
           </div>
-          
+
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-border text-sm text-muted bg-surface uppercase tracking-wider">
@@ -113,7 +162,7 @@ const AdminDashboard = () => {
                     </div>
                   </td>
                   <td className="p-4">
-                    {t.isVerified ? (
+                    {t.therapistProfile?.isVerified ? (
                       <span className="flex items-center gap-1.5 text-xs font-bold text-success bg-success/10 px-3 py-1 rounded-full w-max border border-success/20">
                         <CheckCircle className="w-3.5 h-3.5" /> Verified
                       </span>
@@ -124,17 +173,17 @@ const AdminDashboard = () => {
                     )}
                   </td>
                   <td className="p-4 text-right">
-                    {!t.isVerified ? (
-                      <button 
+                    {!t.therapistProfile?.isVerified ? (
+                      <button
                         onClick={() => handleVerify(t._id, true)}
-                        className="px-4 py-2 bg-success text-white text-xs font-bold rounded-lg shadow hover:bg-success/90"
+                        className="px-4 py-2 bg-success text-white text-xs font-bold rounded-lg shadow hover:bg-success/90 transition-colors"
                       >
                         Approve License
                       </button>
                     ) : (
-                      <button 
+                      <button
                         onClick={() => handleVerify(t._id, false)}
-                        className="px-4 py-2 border border-danger/30 text-danger text-xs font-bold rounded-lg hover:bg-danger/5"
+                        className="px-4 py-2 border border-danger/30 text-danger text-xs font-bold rounded-lg hover:bg-danger/5 transition-colors"
                       >
                         Revoke
                       </button>
@@ -143,12 +192,15 @@ const AdminDashboard = () => {
                 </tr>
               ))}
               {therapists.length === 0 && (
-                <tr><td colSpan="5" className="p-8 text-center text-muted">No therapists registered.</td></tr>
+                <tr>
+                  <td colSpan="5" className="p-8 text-center text-muted">
+                    No therapists registered.
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
         </div>
-        
       </main>
     </div>
   );
