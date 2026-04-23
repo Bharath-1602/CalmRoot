@@ -33,7 +33,7 @@ const AdminDashboard = () => {
 
   const handleVerify = async (id, status) => {
     try {
-      await api.patch(`/api/auth/therapists/${id}/verify`, { isVerified: status });
+      await api.patch(`/api/auth/therapists/${id}/verify`, { action: status ? 'approve' : 'reject' });
       fetchData();
     } catch (err) {
       alert('Action failed');
