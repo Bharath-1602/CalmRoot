@@ -227,21 +227,21 @@ const TherapistDashboard = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-bg rounded-xl p-4 border border-border/50">
                   <div className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Duration</div>
-                  <div className="font-bold text-text">{selectedSession.duration || 50} mins</div>
+                  <div className="font-bold text-text">{selectedSession.durationMinutes || 50} mins</div>
                 </div>
                 <div className="bg-bg rounded-xl p-4 border border-border/50">
                   <div className="text-xs font-bold text-muted uppercase tracking-wider mb-1">Session Fee</div>
-                  <div className="font-bold text-primary">₹{selectedSession.price || 'N/A'}</div>
+                  <div className="font-bold text-primary">₹{selectedSession.sessionFee || profile?.therapistProfile?.sessionPrice || 'N/A'}</div>
                 </div>
               </div>
 
               {/* Notes if any */}
-              {selectedSession.patientNotes && (
+              {selectedSession.userNotes && (
                 <div className="bg-bg rounded-xl p-4 border border-border/50">
                   <div className="text-xs font-bold text-muted uppercase tracking-wider mb-2">
                     Patient Notes
                   </div>
-                  <div className="text-sm text-text">{selectedSession.patientNotes}</div>
+                  <div className="text-sm text-text">{selectedSession.userNotes}</div>
                 </div>
               )}
 
