@@ -87,7 +87,8 @@ exports.cancelSession = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Session not found.' });
     }
 
-    if (session.userId.toString() !== req.user.sub && session.therapistId.toString() !== req.user.sub) {
+    // DynamoDB IDs are strings, so direct comparison works
+    if (session.userId !== req.user.sub && session.therapistId !== req.user.sub) {
       return res.status(403).json({ success: false, message: 'Not authorized.' });
     }
 
@@ -133,7 +134,7 @@ exports.confirmSession = async (req, res) => {
   try {
     const session = await Session.findById(req.params.id);
     if (!session) return res.status(404).json({ success: false, message: 'Session not found.' });
-    if (session.therapistId.toString() !== req.user.sub) {
+    if (session.therapistId !== req.user.sub) {
       return res.status(403).json({ success: false, message: 'Not authorized.' });
     }
     session.status = 'confirmed';
@@ -149,7 +150,7 @@ exports.completeSession = async (req, res) => {
   try {
     const session = await Session.findById(req.params.id);
     if (!session) return res.status(404).json({ success: false, message: 'Session not found.' });
-    if (session.therapistId.toString() !== req.user.sub) {
+    if (session.therapistId !== req.user.sub) {
       return res.status(403).json({ success: false, message: 'Not authorized.' });
     }
     session.status = 'completed';
@@ -165,7 +166,7 @@ exports.saveNotes = async (req, res) => {
   try {
     const session = await Session.findById(req.params.id);
     if (!session) return res.status(404).json({ success: false, message: 'Session not found.' });
-    if (session.therapistId.toString() !== req.user.sub) {
+    if (session.therapistId !== req.user.sub) {
       return res.status(403).json({ success: false, message: 'Not authorized.' });
     }
 
@@ -193,7 +194,7 @@ exports.getNotes = async (req, res) => {
   try {
     const session = await Session.findById(req.params.id);
     if (!session) return res.status(404).json({ success: false, message: 'Session not found.' });
-    if (session.therapistId.toString() !== req.user.sub) {
+    if (session.therapistId !== req.user.sub) {
       return res.status(403).json({ success: false, message: 'Not authorized.' });
     }
 

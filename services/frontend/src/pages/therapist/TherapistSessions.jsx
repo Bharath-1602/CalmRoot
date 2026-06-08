@@ -5,15 +5,22 @@ import api from '../../lib/axios';
 import SeverityBadge from '../../components/shared/SeverityBadge';
 
 // --- Client Info Modal Overlay --- //
-const ClientInfoModal = ({ userId, userName, sessionNotes, onSaveNotes, onClose }) => {
+const ClientInfoModal = ({ userId, userName, sessionId, sessionNotes, onSaveNotes, onClose }) => {
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [downloadingTxt, setDownloadingTxt] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   
   // Note fields
-  const [observations, setObservations] = useState(sessionNotes?.observations || '');
-  const [diagnosis, setDiagnosis] = useState(sessionNotes?.presentingIssues?.join(', ') || '');
-  
+  const [presentingIssues, setPresentingIssues] = useState(sessionNotes?.presentingIssues?.join(', ') || '');
+  const [sessionObservations, setSessionObservations] = useState(sessionNotes?.observations || sessionNotes?.sessionObservations || '');
+  const [sessionSummary, setSessionSummary] = useState(sessionNotes?.sessionSummary || '');
+  const [interventionsUsed, setInterventionsUsed] = useState(sessionNotes?.interventionsUsed?.join(', ') || '');
+  const [homeworkAssigned, setHomeworkAssigned] = useState(sessionNotes?.homeworkAssigned || '');
+  const [nextSessionFocus, setNextSessionFocus] = useState(sessionNotes?.nextSessionFocus || '');
+  const [riskAssessment, setRiskAssessment] = useState(sessionNotes?.riskAssessment || 'none');
+
   useEffect(() => {
     const fetchInfo = async () => {
       try {
@@ -31,13 +38,42 @@ const ClientInfoModal = ({ userId, userName, sessionNotes, onSaveNotes, onClose 
   const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
-    await onSaveNotes({ observations, presentingIssues: diagnosis.split(',').map(s=>s.trim()) });
+    await onSaveNotes({
+      presentingIssues: presentingIssues.split(',').map(s => s.trim()).filter(Boolean),
+      sessionObservations,
+      sessionSummary,
+      interventionsUsed: interventionsUsed.split(',').map(s => s.trim()).filter(Boolean),
+      homeworkAssigned,
+      nextSessionFocus,
+      riskAssessment
+    });
     setSaving(false);
+  };
+
+  const handleDownload = async (format) => {
+    try {
+      if (format === 'txt') setDownloadingTxt(true);
+      else setDownloadingPdf(true);
+      
+      const res = await api.get(`/api/therapist/patient/${userId}/notes/${sessionId}/download?format=${format}`);
+      const downloadUrl = res.data.data.downloadUrl;
+      if (downloadUrl) {
+        window.open(downloadUrl, '_blank');
+      } else {
+        alert('Failed to get download URL');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error fetching download link. Make sure the notes are uploaded.');
+    } finally {
+      if (format === 'txt') setDownloadingTxt(false);
+      else setDownloadingPdf(false);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-accent/80 backdrop-blur-sm animate-in fade-in">
-      <div className="bg-surface w-full max-w-4xl rounded-3xl shadow-xl flex flex-col max-h-[90vh] overflow-hidden">
+      <div className="bg-surface w-full max-w-5xl rounded-3xl shadow-xl flex flex-col max-h-[90vh] overflow-hidden">
         
         <div className="px-6 py-5 border-b border-border bg-accent text-white flex justify-between items-center">
           <h2 className="font-bold text-xl">{userName}'s Profile</h2>
@@ -111,44 +147,128 @@ const ClientInfoModal = ({ userId, userName, sessionNotes, onSaveNotes, onClose 
             )}
           </div>
 
-          <div className="hidden lg:block w-px bg-border my-2 block"></div>
+          <div className="hidden lg:block w-px bg-border my-2"></div>
 
           {/* RIGHT: Session Notes */}
           <div className="w-full lg:w-1/2 flex flex-col">
-            <h3 className="font-bold text-accent text-lg flex items-center gap-2 border-b border-border pb-2 mb-6">
+            <h3 className="font-bold text-accent text-lg flex items-center gap-2 border-b border-border pb-2 mb-4">
               <FileText className="w-5 h-5 text-secondary" /> Clinical Notes
             </h3>
             
-            <form onSubmit={handleSave} className="flex-1 flex flex-col">
-              <div className="space-y-4 flex-1">
+            <form onSubmit={handleSave} className="flex-1 flex flex-col space-y-4">
+              <div className="space-y-4 overflow-y-auto max-h-[50vh] pr-2">
                 <div>
-                  <label className="block text-sm font-bold text-text mb-1">Presenting Issues / Tags</label>
+                  <label className="block text-xs font-bold text-text mb-1 uppercase tracking-wider">Presenting Issues (comma-separated)</label>
                   <input 
                     type="text" 
-                    value={diagnosis} 
-                    onChange={e => setDiagnosis(e.target.value)} 
-                    placeholder="e.g. generalized anxiety, conflict resolution"
-                    className="w-full p-3 rounded-lg border border-border bg-surface focus:ring-2 focus:ring-primary/20"
+                    value={presentingIssues} 
+                    onChange={e => setPresentingIssues(e.target.value)} 
+                    placeholder="e.g. generalized anxiety, relationship conflicts"
+                    className="w-full p-2.5 rounded-lg border border-border bg-surface text-sm focus:ring-2 focus:ring-primary/20"
                   />
                 </div>
-                <div className="flex-1 flex flex-col h-full min-h-[300px]">
-                  <label className="block text-sm font-bold text-text mb-1">Session Observations</label>
+                
+                <div>
+                  <label className="block text-xs font-bold text-text mb-1 uppercase tracking-wider">Session Observations</label>
                   <textarea 
-                    value={observations} 
-                    onChange={e => setObservations(e.target.value)} 
-                    placeholder="Write clinical notes here..."
-                    className="w-full flex-1 p-4 rounded-lg border border-border bg-surface focus:ring-2 focus:ring-primary/20 resize-none font-sans text-sm block"
+                    value={sessionObservations} 
+                    onChange={e => setSessionObservations(e.target.value)} 
+                    placeholder="Observe patient appearance, mood, behavior, speech..."
+                    className="w-full p-3 rounded-lg border border-border bg-surface text-sm focus:ring-2 focus:ring-primary/20 h-20 resize-y font-sans block"
                   />
-                  <p className="text-xs text-muted mt-2">These notes are strictly private and never shared with the user.</p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-text mb-1 uppercase tracking-wider">Session Summary / Clinical Notes</label>
+                  <textarea 
+                    value={sessionSummary} 
+                    onChange={e => setSessionSummary(e.target.value)} 
+                    placeholder="Provide a detailed summary of the therapeutic session..."
+                    className="w-full p-3 rounded-lg border border-border bg-surface text-sm focus:ring-2 focus:ring-primary/20 h-24 resize-y font-sans block"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-text mb-1 uppercase tracking-wider">Interventions Used (comma-separated)</label>
+                  <input 
+                    type="text" 
+                    value={interventionsUsed} 
+                    onChange={e => setInterventionsUsed(e.target.value)} 
+                    placeholder="e.g. CBT reframing, mindfulness, cognitive restructuring"
+                    className="w-full p-2.5 rounded-lg border border-border bg-surface text-sm focus:ring-2 focus:ring-primary/20"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-text mb-1 uppercase tracking-wider">Homework Assigned</label>
+                    <input 
+                      type="text" 
+                      value={homeworkAssigned} 
+                      onChange={e => setHomeworkAssigned(e.target.value)} 
+                      placeholder="e.g. daily thought log, breathing exercises"
+                      className="w-full p-2.5 rounded-lg border border-border bg-surface text-sm focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-text mb-1 uppercase tracking-wider">Next Session Focus</label>
+                    <input 
+                      type="text" 
+                      value={nextSessionFocus} 
+                      onChange={e => setNextSessionFocus(e.target.value)} 
+                      placeholder="e.g. follow up on exposure tasks"
+                      className="w-full p-2.5 rounded-lg border border-border bg-surface text-sm focus:ring-2 focus:ring-primary/20"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-text mb-1 uppercase tracking-wider">Risk Assessment</label>
+                  <select 
+                    value={riskAssessment} 
+                    onChange={e => setRiskAssessment(e.target.value)}
+                    className="w-full p-2.5 rounded-lg border border-border bg-surface text-sm focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value="none">None</option>
+                    <option value="low">Low Risk</option>
+                    <option value="medium">Medium Risk</option>
+                    <option value="high">High Risk</option>
+                  </select>
                 </div>
               </div>
+
+              {sessionNotes && (sessionNotes.clinicalNotesS3Key || sessionNotes.clinicalNotesPdfKey) && (
+                <div className="p-3 bg-primary/5 border border-primary/20 rounded-xl flex items-center justify-between text-xs">
+                  <span className="font-bold text-text">S3 Documents:</span>
+                  <div className="flex gap-2">
+                    <button 
+                      type="button" 
+                      onClick={() => handleDownload('txt')}
+                      disabled={downloadingTxt}
+                      className="px-2 py-1 bg-accent text-white font-bold rounded hover:bg-accent/90 disabled:opacity-50"
+                    >
+                      {downloadingTxt ? 'TXT...' : 'Download TXT'}
+                    </button>
+                    <button 
+                      type="button" 
+                      onClick={() => handleDownload('pdf')}
+                      disabled={downloadingPdf}
+                      className="px-2 py-1 bg-primary text-white font-bold rounded hover:bg-primary/90 disabled:opacity-50"
+                    >
+                      {downloadingPdf ? 'PDF...' : 'Download PDF'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <button 
                 type="submit" 
                 disabled={saving}
-                className="mt-6 w-full py-3 bg-secondary text-white font-bold rounded-xl hover:bg-secondary/90 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 bg-secondary text-white font-bold rounded-xl hover:bg-secondary/90 transition-all flex items-center justify-center gap-2"
               >
                 {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                <CheckCircle className="w-5 h-5"/> Save Notes
+                <CheckCircle className="w-5 h-5"/> Save & Upload Clinical Notes
               </button>
             </form>
           </div>
@@ -207,10 +327,17 @@ const TherapistSessions = () => {
 
   const saveNotes = async (notesData) => {
     try {
-      const res = await api.post(`/api/therapist/sessions/${selectedSessionForNotes._id}/notes`, notesData);
-      setSessionNotesCache(prev => ({...prev, [selectedSessionForNotes._id]: res.data.data}));
+      const res = await api.post(`/api/therapist/patient/${selectedSessionForNotes.userId}/notes`, {
+        sessionId: selectedSessionForNotes._id,
+        ...notesData
+      });
+      // We retrieve note details back from the S3 upload result, which returns a wrapped note object
+      if (res.data.data) {
+        setSessionNotesCache(prev => ({...prev, [selectedSessionForNotes._id]: res.data.data}));
+      }
       setSelectedSessionForNotes(null);
     } catch (err) {
+      console.error(err);
       alert('Failed to save notes');
     }
   };
@@ -294,6 +421,7 @@ const TherapistSessions = () => {
         <ClientInfoModal 
           userId={selectedSessionForNotes.userId}
           userName={selectedSessionForNotes.userName}
+          sessionId={selectedSessionForNotes._id}
           sessionNotes={sessionNotesCache[selectedSessionForNotes._id]}
           onSaveNotes={saveNotes}
           onClose={() => setSelectedSessionForNotes(null)}

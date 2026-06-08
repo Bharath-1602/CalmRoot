@@ -1,8 +1,9 @@
+require("dotenv").config();
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const morgan = require('morgan');
-const connectDB = require('./config/db');
+const { initializeSecrets } = require('./config/secrets-manager');
 const authRoutes = require('./routes/auth.routes');
 const { runDefaultSeed } = require('./seeds/defaultData.seed');
 
@@ -26,11 +27,16 @@ app.use((err, req, res, next) => {
 });
 
 const start = async () => {
-  await connectDB();
-  await runDefaultSeed();
-  app.listen(PORT, () => {
-    console.log(`Auth service running on port ${PORT}`);
-  });
+  try {
+    await initializeSecrets(['wellnest/production/jwt-secret']);
+    await runDefaultSeed();
+    app.listen(PORT, () => {
+      console.log(`Auth service running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start Auth service:', error);
+    process.exit(1);
+  }
 };
 
 start();

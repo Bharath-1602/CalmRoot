@@ -2,6 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const therapistCtrl = require('../controllers/therapist.controller');
 const sessionCtrl = require('../controllers/session.controller');
+const clinicalNotesCtrl = require('../controllers/clinicalNotesController');
 const { authenticate, authorize } = require('../middleware/auth.middleware');
 
 const router = express.Router();
@@ -33,6 +34,12 @@ router.get('/sessions/:id/notes', authenticate, authorize('therapist'), sessionC
 
 router.get('/my/client/:userId', authenticate, authorize('therapist'), therapistCtrl.getClientInfo);
 
+// Clinical notes S3 routes
+router.post('/patient/:patientId/notes', authenticate, authorize('therapist'), clinicalNotesCtrl.uploadNotes);
+router.get('/patient/:patientId/notes', authenticate, clinicalNotesCtrl.listNotes);
+router.get('/patient/:patientId/notes/:sessionId/download', authenticate, clinicalNotesCtrl.downloadNotes);
+
 router.get('/admin/stats', authenticate, authorize('admin'), therapistCtrl.getAdminStats);
 
 module.exports = router;
+

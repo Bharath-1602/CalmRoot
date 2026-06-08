@@ -1,8 +1,9 @@
+require("dotenv").config();
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const morgan = require('morgan');
-const connectDB = require('./config/db');
+const { initializeSecrets } = require('./config/secrets-manager');
 const assessmentRoutes = require('./routes/assessment.routes');
 const { seedTemplates } = require('./seeds/templates.seed');
 
@@ -26,11 +27,16 @@ app.use((err, req, res, next) => {
 });
 
 const start = async () => {
-  await connectDB();
-  await seedTemplates();
-  app.listen(PORT, () => {
-    console.log(`Assessment service running on port ${PORT}`);
-  });
+  try {
+    await initializeSecrets(['wellnest/production/jwt-secret']);
+    await seedTemplates();
+    app.listen(PORT, () => {
+      console.log(`Assessment service running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start Assessment service:', error);
+    process.exit(1);
+  }
 };
 
 start();

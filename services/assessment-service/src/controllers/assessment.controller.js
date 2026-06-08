@@ -36,7 +36,7 @@ exports.submitAssessment = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Assessment template not found.' });
     }
 
-    const totalScore = answers.reduce((sum, a) => sum + a.selectedValue, 0);
+    const totalScore = answers.reduce((sum, a) => sum + (a.answer || a.selectedValue || 0), 0);
 
     let severity = '', severityColor = '', description = '', recommendations = [];
     for (const range of template.scoring.ranges) {
@@ -62,10 +62,10 @@ exports.submitAssessment = async (req, res) => {
       recommendations,
       isAbnormal,
       durationSeconds,
-      takenAt: new Date()
+      takenAt: new Date().toISOString()
     });
 
-    res.status(201).json({ success: true, data: { ...result.toObject(), description } });
+    res.status(201).json({ success: true, data: { ...result, description } });
   } catch (error) {
     console.error('Submit assessment error:', error);
     res.status(500).json({ success: false, message: 'Server error.' });
@@ -114,7 +114,7 @@ exports.getTrends = async (req, res) => {
     }).sort({ takenAt: 1 }).select('takenAt totalScore');
 
     const trends = results.map(r => ({
-      date: r.takenAt.toISOString().split('T')[0],
+      date: (typeof r.takenAt === 'string' ? r.takenAt : new Date(r.takenAt).toISOString()).split('T')[0],
       score: r.totalScore
     }));
 

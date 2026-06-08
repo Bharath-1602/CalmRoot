@@ -2,11 +2,12 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const User = require('../models/User');
+const { getSecret } = require('../config/secrets-manager');
 
 const generateToken = (user) => {
   return jwt.sign(
     { sub: user._id, email: user.email, role: user.role, name: user.name },
-    process.env.JWT_SECRET,
+    getSecret('wellnest/production/jwt-secret'),
     { algorithm: 'HS256', expiresIn: '24h' }
   );
 };
@@ -75,7 +76,7 @@ exports.login = async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
-    user.lastLogin = new Date();
+    user.lastLogin = new Date().toISOString();
     await user.save();
 
     const token = generateToken(user);
@@ -193,7 +194,7 @@ exports.verifyTherapist = async (req, res) => {
 
     if (action === 'approve') {
       therapist.therapistProfile.isVerified = true;
-      therapist.therapistProfile.verifiedAt = new Date();
+      therapist.therapistProfile.verifiedAt = new Date().toISOString();
       therapist.therapistProfile.verifiedBy = req.user.sub;
       therapist.therapistProfile.rejectionReason = undefined;
     } else if (action === 'reject') {

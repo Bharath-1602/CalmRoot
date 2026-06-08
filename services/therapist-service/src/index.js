@@ -1,8 +1,9 @@
+require("dotenv").config();
 const express = require('express');
 const helmet = require('helmet');
 const cors = require('cors');
 const morgan = require('morgan');
-const connectDB = require('./config/db');
+const { initializeSecrets } = require('./config/secrets-manager');
 const therapistRoutes = require('./routes/therapist.routes');
 const { seedAvailability } = require('./seeds/availability.seed');
 
@@ -26,11 +27,16 @@ app.use((err, req, res, next) => {
 });
 
 const start = async () => {
-  await connectDB();
-  setTimeout(() => seedAvailability(), 3000);
-  app.listen(PORT, () => {
-    console.log(`Therapist service running on port ${PORT}`);
-  });
+  try {
+    await initializeSecrets(['wellnest/production/jwt-secret']);
+    setTimeout(() => seedAvailability(), 3000);
+    app.listen(PORT, () => {
+      console.log(`Therapist service running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start Therapist service:', error);
+    process.exit(1);
+  }
 };
 
 start();

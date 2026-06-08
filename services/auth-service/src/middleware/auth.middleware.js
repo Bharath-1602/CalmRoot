@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { getSecret } = require('../config/secrets-manager');
 
 const authenticate = (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -7,7 +8,7 @@ const authenticate = (req, res, next) => {
   }
   try {
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, getSecret('wellnest/production/jwt-secret'));
     req.user = decoded;
     next();
   } catch (error) {

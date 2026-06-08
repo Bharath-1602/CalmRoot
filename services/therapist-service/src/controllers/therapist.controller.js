@@ -51,12 +51,12 @@ exports.getAvailableSlots = async (req, res) => {
       return res.json({ success: true, data: [] });
     }
 
-    if (availability.blockedDates.includes(date)) {
+    if (availability.blockedDates && availability.blockedDates.includes(date)) {
       return res.json({ success: true, data: [] });
     }
 
     const dayOfWeek = new Date(date).toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-    const daySchedule = availability.weeklySchedule[dayOfWeek];
+    const daySchedule = availability.weeklySchedule ? availability.weeklySchedule[dayOfWeek] : null;
 
     if (!daySchedule || !daySchedule.isAvailable) {
       return res.json({ success: true, data: [] });
@@ -66,7 +66,7 @@ exports.getAvailableSlots = async (req, res) => {
       therapistId: id,
       scheduledDate: date,
       status: { $in: ['pending', 'confirmed'] }
-    }).select('scheduledTime');
+    });
 
     const bookedTimes = bookedSessions.map(s => s.scheduledTime);
     const availableSlots = daySchedule.timeSlots.filter(slot => !bookedTimes.includes(slot));
@@ -147,12 +147,14 @@ exports.getAdminStats = async (req, res) => {
   try {
     const totalSessions = await Session.countDocuments();
     const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const completedThisMonth = await Session.countDocuments({
-      status: 'completed',
-      updatedAt: { $gte: startOfMonth }
-    });
-    const pendingCount = await Session.countDocuments({ status: 'pending' });
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    
+    // Get all sessions and filter in JS for completed this month and pending
+    const allSessions = await Session.find({});
+    const completedThisMonth = allSessions.filter(s => 
+      s.status === 'completed' && s.updatedAt && new Date(s.updatedAt) >= new Date(startOfMonth)
+    ).length;
+    const pendingCount = allSessions.filter(s => s.status === 'pending').length;
 
     res.json({ success: true, data: { totalSessions, completedThisMonth, pendingCount } });
   } catch (error) {
