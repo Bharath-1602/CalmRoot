@@ -1,19 +1,39 @@
+# Node.js
 node_modules/
 dist/
 build/
-.env
-.env.local
-*.log
-npm-debug.log*
-.DS_Store
-Thumbs.db
 coverage/
 .nyc_output/
+
+# Environment files
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+terraform.tfstate.d/
+
+# Keep provider lock file
+!.terraform.lock.hcl
+
+# Misc
 .agents/
-graphify-out/ 
+graphify-out/
 check-graphify.py/
 install-graphify.ps1/
