@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Smile, Brain, Sun, Activity, AlertCircle, Info, Star, TrendingUp } from 'lucide-react';
+import { Smile, Brain, Sun, Activity, AlertCircle, Info, Star, TrendingUp, Sparkles } from 'lucide-react';
 import Sidebar from '../../components/shared/Sidebar';
 import api from '../../lib/axios';
 
@@ -9,23 +9,26 @@ const Dashboard = () => {
   const [insights, setInsights] = useState([]);
   const [upcoming, setUpcoming] = useState(null);
   const [todayMood, setTodayMood] = useState(null);
+  const [wellnessAnalysis, setWellnessAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [sumRes, insRes, sesRes, moodRes] = await Promise.all([
+        const [sumRes, insRes, sesRes, moodRes, wellnessRes] = await Promise.all([
           api.get('/api/assessment/summary'),
           api.get('/api/assessment/insights'),
           api.get('/api/therapist/sessions/upcoming'),
-          api.get('/api/assessment/mood/today')
+          api.get('/api/assessment/mood/today'),
+          api.get('/api/wellness/latest')
         ]);
         
         setSummary(sumRes.data.data);
         setInsights(insRes.data.data);
         if (sesRes.data.data.length > 0) setUpcoming(sesRes.data.data[0]);
         setTodayMood(moodRes.data.data);
+        setWellnessAnalysis(wellnessRes.data.data);
       } catch (error) {
         console.error("Dashboard fetch error", error);
       } finally {
@@ -123,6 +126,77 @@ const Dashboard = () => {
               </Link>
             </div>
           )}
+
+          {/* SAGE AI WELLNESS BENTO GRID */}
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-text flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-cr-primary" /> Sage AI Insights
+            </h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              
+              {/* Daily Uplift (Joke) */}
+              <div className="bg-surface rounded-2xl p-6 border border-border shadow-sm flex flex-col justify-between hover:border-cr-primary/30 transition-colors">
+                <div>
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-cr-primary font-bold">Sage's Daily Uplift 🌿</span>
+                  <div className="mt-4 p-4 rounded-xl bg-cr-surface-alt dark:bg-[#161B22] text-sm italic relative border border-border/50 text-text">
+                    "{wellnessAnalysis?.joke || 'Why did the brain go to therapy? Because it had too many thoughts! 🧠'}"
+                  </div>
+                </div>
+                <div className="text-xs text-muted mt-4 font-medium">
+                  Sage AI • Uplifting thoughts
+                </div>
+              </div>
+
+              {/* Actionable Suggestions */}
+              <div className="bg-surface rounded-2xl p-6 border border-border shadow-sm md:col-span-2 flex flex-col justify-between hover:border-cr-primary/30 transition-colors">
+                <div>
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-cr-primary font-bold block mb-3">Personalized Wellness Actions ✨</span>
+                  <ul className="space-y-2">
+                    {(wellnessAnalysis?.suggestions || [
+                      'Take a few deep breaths and practice mindfulness',
+                      'Consider journaling your thoughts today',
+                      'Reach out to a trusted friend or therapist'
+                    ]).map((s, idx) => (
+                      <li key={idx} className="text-sm flex items-start gap-2 text-text">
+                        <span className="text-cr-primary shrink-0 mt-0.5">✓</span>
+                        <span>{s}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  {wellnessAnalysis?.weeklyInsight && (
+                    <div className="mt-4 pt-3 border-t border-border/30 text-xs text-muted">
+                      💡 <strong>Weekly Insight:</strong> {wellnessAnalysis.weeklyInsight}
+                    </div>
+                  )}
+                </div>
+                <div className="text-xs text-muted mt-4 font-medium">
+                  Powered by Amazon Bedrock
+                </div>
+              </div>
+
+              {/* AI Therapist Matching */}
+              <div className="bg-surface rounded-2xl p-6 border border-border shadow-sm md:col-span-3 flex flex-col md:flex-row items-center justify-between gap-6 hover:border-cr-primary/30 transition-colors">
+                <div className="space-y-2 max-w-2xl">
+                  <span className="text-[10px] uppercase font-mono tracking-wider text-cr-primary font-bold block">AI Therapist Match 🤝</span>
+                  <h4 className="text-lg font-bold text-text">
+                    {wellnessAnalysis?.therapistRecommendation?.recommendedTherapistName || 'Dr. Sarah Patel, MD'}
+                  </h4>
+                  <p className="text-sm text-muted">
+                    {wellnessAnalysis?.therapistRecommendation?.reason || 'Recommended to support routine care check-ins. Consistent therapy is a valuable tool for maintenance and growth.'}
+                  </p>
+                </div>
+                <div className="shrink-0">
+                  <Link 
+                    to="/therapists" 
+                    className="px-6 py-3 bg-cr-primary text-white font-bold rounded-xl hover:bg-cr-primary-dark transition-colors shadow-sm inline-block whitespace-nowrap text-sm"
+                  >
+                    Book Appointment
+                  </Link>
+                </div>
+              </div>
+
+            </div>
+          </div>
 
           {/* ROW 2: WELLNESS SCORES */}
           <div className="grid md:grid-cols-3 gap-6">

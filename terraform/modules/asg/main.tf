@@ -1,5 +1,5 @@
 resource "aws_autoscaling_group" "frontend" {
-  name                      = "wellnest-${terraform.workspace}-frontend-asg"
+  name                      = "calmroot-${terraform.workspace}-frontend-asg"
   vpc_zone_identifier       = var.public_subnet_ids
   min_size                  = var.frontend_min_size
   max_size                  = var.frontend_max_size
@@ -23,7 +23,7 @@ resource "aws_autoscaling_group" "frontend" {
 
   tag {
     key                 = "Name"
-    value               = "wellnest-${terraform.workspace}-frontend-asg-node"
+    value               = "calmroot-${terraform.workspace}-frontend-asg-node"
     propagate_at_launch = true
   }
 
@@ -33,7 +33,7 @@ resource "aws_autoscaling_group" "frontend" {
 }
 
 resource "aws_autoscaling_group" "backend" {
-  name                      = "wellnest-${terraform.workspace}-backend-asg"
+  name                      = "calmroot-${terraform.workspace}-backend-asg"
   vpc_zone_identifier       = var.private_subnet_ids
   min_size                  = var.backend_min_size
   max_size                  = var.backend_max_size
@@ -57,7 +57,7 @@ resource "aws_autoscaling_group" "backend" {
 
   tag {
     key                 = "Name"
-    value               = "wellnest-${terraform.workspace}-backend-asg-node"
+    value               = "calmroot-${terraform.workspace}-backend-asg-node"
     propagate_at_launch = true
   }
 
@@ -68,7 +68,7 @@ resource "aws_autoscaling_group" "backend" {
 
 # Backend Auto Scaling Target Tracking CPU Policy (Target: 50% CPU)
 resource "aws_autoscaling_policy" "backend_cpu" {
-  name                   = "wellnest-${terraform.workspace}-backend-cpu-policy"
+  name                   = "calmroot-${terraform.workspace}-backend-cpu-policy"
   policy_type            = "TargetTrackingScaling"
   autoscaling_group_name = aws_autoscaling_group.backend.name
 

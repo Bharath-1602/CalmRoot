@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { BrainCircuit, AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
@@ -33,16 +33,19 @@ const Login = () => {
   return (
     <div className="flex min-h-screen bg-surface">
       {/* LEFT PANEL */}
-      <div className="hidden lg:flex w-1/2 bg-accent text-white flex-col relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0C2340]"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4wNSkiLz48L3N2Zz4=')]"></div>
+      <div className="hidden lg:flex w-1/2 text-white flex-col relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0D2B1A, #1A4A2E, #2D5A3D)' }}>
+        <div className="absolute inset-0 grain-overlay" />
         
         <div className="relative z-10 p-12 flex flex-col h-full justify-between">
           <div>
             <Link to="/" className="flex items-center gap-2 mb-20 inline-flex">
-              <BrainCircuit className="h-8 w-8 text-white" />
-              <span className="text-2xl font-bold tracking-tight text-white">
-                Well<span className="text-secondary">Nest</span>
+              <svg width="32" height="32" viewBox="0 0 36 36" fill="none" className="text-white">
+                <path d="M18 4C18 4 8 10 8 20C8 26 12 32 18 32" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.6"/>
+                <path d="M18 4C18 4 28 10 28 20C28 26 24 32 18 32" stroke="currentColor" strokeWidth="2" fill="none"/>
+                <path d="M18 12V32" stroke="currentColor" strokeWidth="2"/>
+              </svg>
+              <span className="text-2xl font-heading font-bold tracking-tight text-white">
+                Calm<span className="text-cr-primary-light">Root</span>
               </span>
             </Link>
             
@@ -52,7 +55,7 @@ const Login = () => {
             
             <div className="space-y-6 mt-12 text-white/80">
               <div className="flex items-center gap-4 text-lg">
-                <div className="bg-secondary/20 p-2 rounded-full"><span className="text-secondary">✓</span></div>
+                <div className="bg-cr-primary-light/20 p-2 rounded-full"><span className="text-cr-primary-light">✓</span></div>
                 <span>Track your mood and progress</span>
               </div>
               <div className="flex items-center gap-4 text-lg">
@@ -69,7 +72,7 @@ const Login = () => {
       </div>
 
       {/* RIGHT PANEL - FORM */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-12 xl:px-24 bg-white relative">
+      <div className="w-full lg:w-1/2 flex flex-col justify-center px-6 sm:px-12 xl:px-24 bg-surface relative">
         <Link to="/" className="absolute top-8 left-6 sm:left-12 text-sm font-medium text-muted hover:text-primary transition-colors flex items-center gap-2">
           ← Back to Home
         </Link>

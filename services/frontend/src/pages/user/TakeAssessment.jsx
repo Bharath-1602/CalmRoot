@@ -63,6 +63,20 @@ const TakeAssessment = () => {
         answers: formattedAnswers,
         durationSeconds
       });
+
+      // Trigger wellness AI analysis with assessment context
+      try {
+        const isPhq9 = template.type === 'PHQ-9';
+        const isGad7 = template.type === 'GAD-7';
+        await api.post('/api/wellness/analyze', {
+          phq9Score: isPhq9 ? res.data.data.totalScore : undefined,
+          gad7Score: isGad7 ? res.data.data.totalScore : undefined,
+          triggerSource: 'ASSESSMENT'
+        });
+      } catch (analError) {
+        console.error('Wellness AI analysis trigger failed:', analError);
+      }
+
       navigate(`/assessments/result/${res.data.data._id}`, { state: { result: res.data.data } });
     } catch (error) {
       setSubmitting(false);

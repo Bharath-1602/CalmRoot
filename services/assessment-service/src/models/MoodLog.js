@@ -1,7 +1,7 @@
 const { ddbDocClient } = require('../config/dynamodb-client');
 const { PutCommand, GetCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 
-const TABLE_NAME = 'wellnest-mood-logs';
+const TABLE_NAME = 'calmroot-mood-logs';
 
 function wrapMood(item) {
   if (!item) return null;

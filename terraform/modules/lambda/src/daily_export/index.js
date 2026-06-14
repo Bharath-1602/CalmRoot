@@ -12,10 +12,10 @@ exports.handler = async (event) => {
   const dateStr = now.toISOString().split('T')[0];
 
   try {
-    // 1. Scan Assessments (wellnest-assessments)
-    console.log("Scanning DynamoDB wellnest-assessments table...");
+    // 1. Scan Assessments (calmroot-assessments)
+    console.log("Scanning DynamoDB calmroot-assessments table...");
     const assessmentsScan = await ddbClient.send(new ScanCommand({
-      TableName: "wellnest-assessments"
+      TableName: "calmroot-assessments"
     }));
 
     // Filter assessments from the last 24 hours
@@ -25,10 +25,10 @@ exports.handler = async (event) => {
         return itemDate >= oneDayAgo;
       });
 
-    // 2. Scan Mood Logs (wellnest-mood-logs)
-    console.log("Scanning DynamoDB wellnest-mood-logs table...");
+    // 2. Scan Mood Logs (calmroot-mood-logs)
+    console.log("Scanning DynamoDB calmroot-mood-logs table...");
     const moodLogsScan = await ddbClient.send(new ScanCommand({
-      TableName: "wellnest-mood-logs"
+      TableName: "calmroot-mood-logs"
     }));
 
     // Filter mood logs from the last 24 hours
@@ -40,9 +40,9 @@ exports.handler = async (event) => {
 
     // 3. Upload Assessments to S3
     const assessmentKey = `assessments/${dateStr}.json`;
-    console.log(`Uploading assessments to S3: s3://wellnest-daily-exports/${assessmentKey}`);
+    console.log(`Uploading assessments to S3: s3://calmroot-daily-exports/${assessmentKey}`);
     await s3Client.send(new PutObjectCommand({
-      Bucket: "wellnest-daily-exports",
+      Bucket: "calmroot-daily-exports",
       Key: assessmentKey,
       Body: JSON.stringify(recentAssessments, null, 2),
       ContentType: "application/json"
@@ -50,9 +50,9 @@ exports.handler = async (event) => {
 
     // 4. Upload Mood Logs to S3
     const moodKey = `mood-logs/${dateStr}.json`;
-    console.log(`Uploading mood logs to S3: s3://wellnest-daily-exports/${moodKey}`);
+    console.log(`Uploading mood logs to S3: s3://calmroot-daily-exports/${moodKey}`);
     await s3Client.send(new PutObjectCommand({
-      Bucket: "wellnest-daily-exports",
+      Bucket: "calmroot-daily-exports",
       Key: moodKey,
       Body: JSON.stringify(recentMoodLogs, null, 2),
       ContentType: "application/json"

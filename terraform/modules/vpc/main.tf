@@ -4,7 +4,7 @@ resource "aws_vpc" "main" {
   enable_dns_support   = true
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-vpc"
+    Name = "calmroot-${terraform.workspace}-vpc"
   }
 }
 
@@ -13,7 +13,7 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-igw"
+    Name = "calmroot-${terraform.workspace}-igw"
   }
 }
 
@@ -26,7 +26,7 @@ resource "aws_subnet" "web_public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-web-public-${substr(each.key, -2, 2)}"
+    Name = "calmroot-${terraform.workspace}-web-public-${substr(each.key, -2, 2)}"
   }
 }
 
@@ -38,7 +38,7 @@ resource "aws_subnet" "app_private" {
   availability_zone = each.key
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-app-private-${substr(each.key, -2, 2)}"
+    Name = "calmroot-${terraform.workspace}-app-private-${substr(each.key, -2, 2)}"
   }
 }
 
@@ -50,7 +50,7 @@ resource "aws_subnet" "db_private" {
   availability_zone = each.key
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-db-private-${substr(each.key, -2, 2)}"
+    Name = "calmroot-${terraform.workspace}-db-private-${substr(each.key, -2, 2)}"
   }
 }
 
@@ -59,7 +59,7 @@ resource "aws_eip" "nat" {
   domain = "vpc"
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-nat-eip"
+    Name = "calmroot-${terraform.workspace}-nat-eip"
   }
 }
 
@@ -70,7 +70,7 @@ resource "aws_nat_gateway" "nat" {
   subnet_id = aws_subnet.web_public["us-east-1a"].id
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-nat-gw"
+    Name = "calmroot-${terraform.workspace}-nat-gw"
   }
 
   depends_on = [aws_internet_gateway.igw]
@@ -86,7 +86,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-public-rt"
+    Name = "calmroot-${terraform.workspace}-public-rt"
   }
 }
 
@@ -100,7 +100,7 @@ resource "aws_route_table" "app_private" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-app-private-rt"
+    Name = "calmroot-${terraform.workspace}-app-private-rt"
   }
 }
 
@@ -109,7 +109,7 @@ resource "aws_route_table" "db_private" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-db-private-rt"
+    Name = "calmroot-${terraform.workspace}-db-private-rt"
   }
 }
 

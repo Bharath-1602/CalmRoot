@@ -7,7 +7,7 @@ const ddbClient = new DynamoDBClient({ region });
 const ddbDocClient = DynamoDBDocumentClient.from(ddbClient);
 const s3Client = new S3Client({ region });
 
-const EXPORTS_BUCKET = process.env.EXPORTS_BUCKET || 'wellnest-daily-exports';
+const EXPORTS_BUCKET = process.env.EXPORTS_BUCKET || 'calmroot-daily-exports';
 
 exports.handler = async (event) => {
   const today = new Date();
@@ -23,7 +23,7 @@ exports.handler = async (event) => {
     // 1. Export Assessments
     console.log('Scanning assessments...');
     const assessmentsScan = await ddbDocClient.send(new ScanCommand({
-      TableName: 'wellnest-assessments'
+      TableName: 'calmroot-assessments'
     }));
     
     const allAssessments = assessmentsScan.Items || [];
@@ -47,7 +47,7 @@ exports.handler = async (event) => {
     // 2. Export Mood Logs
     console.log('Scanning mood logs...');
     const moodScan = await ddbDocClient.send(new ScanCommand({
-      TableName: 'wellnest-mood-logs'
+      TableName: 'calmroot-mood-logs'
     }));
 
     const allMoodLogs = moodScan.Items || [];

@@ -41,7 +41,7 @@ variable "app_sg_id" {
 variable "backend_instance_profile_name" {
   description = "IAM Instance Profile name for Backend EC2"
   type        = string
-  default     = "wellnest-backend-ec2-role"
+  default     = "calmroot-backend-ec2-role"
 }
 
 variable "internal_alb_dns_name" {

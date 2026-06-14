@@ -1,7 +1,7 @@
 // SessionNote is now merged into the Session model.
 // Notes fields (presentingIssues, sessionSummary, observations, interventionsUsed,
 // homeworkAssigned, nextSessionFocus, riskAssessment) are stored as attributes
-// directly on the Session item in the wellnest-sessions DynamoDB table.
+// directly on the Session item in the calmroot-sessions DynamoDB table.
 //
 // This module provides a backward-compatible API so existing controller code
 // still works without changes.
@@ -9,7 +9,7 @@
 const { ddbDocClient } = require('../config/dynamodb-client');
 const { GetCommand, PutCommand, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 
-const TABLE_NAME = 'wellnest-sessions';
+const TABLE_NAME = 'calmroot-sessions';
 
 function wrapNote(item) {
   if (!item) return null;

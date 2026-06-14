@@ -5,14 +5,14 @@ const client = new SecretsManagerClient({ region });
 
 const secretsCache = new Map();
 
-// Helper to normalize keys (e.g., "wellnest/production/jwt-secret" -> "JWT_SECRET")
+// Helper to normalize keys (e.g., "calmroot/production/jwt-secret" -> "JWT_SECRET")
 function getEnvFallbackKey(secretName) {
   const parts = secretName.split('/');
   const lastPart = parts[parts.length - 1];
   return lastPart.replace(/-/g, '_').toUpperCase();
 }
 
-async function initializeSecrets(secretNames = ['wellnest/production/jwt-secret']) {
+async function initializeSecrets(secretNames = ['calmroot/production/jwt-secret']) {
   if (process.env.NODE_ENV !== 'production') {
     console.log('Not in production. Skipping Secrets Manager initialization, using env variables.');
     return;

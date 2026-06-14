@@ -1,5 +1,5 @@
 resource "aws_launch_template" "frontend" {
-  name_prefix   = "wellnest-${terraform.workspace}-frontend-"
+  name_prefix   = "calmroot-${terraform.workspace}-frontend-"
   image_id      = var.frontend_ami_id
   instance_type = var.frontend_instance_type
   key_name      = var.key_name
@@ -24,13 +24,13 @@ resource "aws_launch_template" "frontend" {
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name = "wellnest-${terraform.workspace}-frontend-asg-node"
+      Name = "calmroot-${terraform.workspace}-frontend-asg-node"
     }
   }
 }
 
 resource "aws_launch_template" "backend" {
-  name_prefix   = "wellnest-${terraform.workspace}-backend-"
+  name_prefix   = "calmroot-${terraform.workspace}-backend-"
   image_id      = var.backend_ami_id
   instance_type = var.backend_instance_type
   key_name      = var.key_name
@@ -57,7 +57,7 @@ resource "aws_launch_template" "backend" {
   tag_specifications {
     resource_type = "instance"
     tags = {
-      Name = "wellnest-${terraform.workspace}-backend-asg-node"
+      Name = "calmroot-${terraform.workspace}-backend-asg-node"
     }
   }
 }

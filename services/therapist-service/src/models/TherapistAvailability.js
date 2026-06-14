@@ -1,8 +1,8 @@
 const { ddbDocClient } = require('../config/dynamodb-client');
 const { PutCommand, GetCommand } = require('@aws-sdk/lib-dynamodb');
 
-// Availability is stored in the wellnest-users table with SK = 'AVAILABILITY'
-const TABLE_NAME = 'wellnest-users';
+// Availability is stored in the calmroot-users table with SK = 'AVAILABILITY'
+const TABLE_NAME = 'calmroot-users';
 
 function wrapAvailability(item) {
   if (!item) return null;

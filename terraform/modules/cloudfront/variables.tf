@@ -4,7 +4,7 @@ variable "project_name" {
 }
 
 variable "domain_name" {
-  description = "Base domain name for CNAMEs (e.g., wellnest-project.online)"
+  description = "Base domain name for CNAMEs (e.g., calmroot-project.online)"
   type        = string
 }
 

@@ -1,6 +1,6 @@
 resource "aws_wafv2_web_acl" "waf" {
-  name        = "wellnest-${terraform.workspace}-waf"
-  description = "WAF for WellNest CloudFront Distribution"
+  name        = "calmroot-${terraform.workspace}-waf"
+  description = "WAF for CalmRoot CloudFront Distribution"
   scope       = "CLOUDFRONT"
 
   default_action {
@@ -94,11 +94,11 @@ resource "aws_wafv2_web_acl" "waf" {
 
   visibility_config {
     cloudwatch_metrics_enabled = true
-    metric_name                = "wellnest-${terraform.workspace}-waf-metrics"
+    metric_name                = "calmroot-${terraform.workspace}-waf-metrics"
     sampled_requests_enabled   = true
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-waf"
+    Name = "calmroot-${terraform.workspace}-waf"
   }
 }

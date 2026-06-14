@@ -49,7 +49,7 @@ const TherapistDirectory = () => {
           
           <div className="border-b border-border pb-4">
             <h1 className="text-3xl font-bold text-text mb-1">Find a Therapist</h1>
-            <p className="text-muted">All therapists on WellNest are verified mental health professionals</p>
+            <p className="text-muted">All therapists on CalmRoot are verified mental health professionals</p>
           </div>
 
           {/* FILTER BAR */}

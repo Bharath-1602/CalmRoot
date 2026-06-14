@@ -3,16 +3,16 @@ version: "3.8"
 services:
   mongodb:
     image: mongo:7.0
-    container_name: wellnest-mongodb
+    container_name: calmroot-mongodb
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS}
-      MONGO_INITDB_DATABASE: wellnest
+      MONGO_INITDB_DATABASE: calmroot
     volumes:
       - mongodb_data:/data/db
     networks:
-      - wellnest-net
+      - calmroot-net
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -22,7 +22,7 @@ services:
 
   auth-service:
     build: ./services/auth-service
-    container_name: wellnest-auth
+    container_name: calmroot-auth
     restart: unless-stopped
     environment:
       PORT: 3001
@@ -34,7 +34,7 @@ services:
       mongodb:
         condition: service_healthy
     networks:
-      - wellnest-net
+      - calmroot-net
     ports:
       - "3001:3001"
     healthcheck:
@@ -46,7 +46,7 @@ services:
 
   assessment-service:
     build: ./services/assessment-service
-    container_name: wellnest-assessment
+    container_name: calmroot-assessment
     restart: unless-stopped
     environment:
       PORT: 3002
@@ -61,7 +61,7 @@ services:
       auth-service:
         condition: service_healthy
     networks:
-      - wellnest-net
+      - calmroot-net
     ports:
       - "3002:3002"
     healthcheck:
@@ -73,7 +73,7 @@ services:
 
   therapist-service:
     build: ./services/therapist-service
-    container_name: wellnest-therapist
+    container_name: calmroot-therapist
     restart: unless-stopped
     environment:
       PORT: 3003
@@ -90,7 +90,7 @@ services:
       assessment-service:
         condition: service_healthy
     networks:
-      - wellnest-net
+      - calmroot-net
     ports:
       - "3003:3003"
     healthcheck:
@@ -107,14 +107,14 @@ services:
         VITE_AUTH_URL: http://localhost:3001
         VITE_ASSESSMENT_URL: http://localhost:3002
         VITE_THERAPIST_URL: http://localhost:3003
-    container_name: wellnest-frontend
+    container_name: calmroot-frontend
     restart: unless-stopped
     depends_on:
       - auth-service
       - assessment-service
       - therapist-service
     networks:
-      - wellnest-net
+      - calmroot-net
     ports:
       - "80:80"
     healthcheck:
@@ -126,7 +126,7 @@ services:
 #      start_period: 10s
 
 networks:
-  wellnest-net:
+  calmroot-net:
     driver: bridge
 
 volumes:

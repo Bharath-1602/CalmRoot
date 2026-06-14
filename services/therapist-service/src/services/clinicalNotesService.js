@@ -5,7 +5,7 @@ const { s3Client, CLINICAL_NOTES_BUCKET } = require('../config/s3-client');
 const Session = require('../models/Session');
 
 function generateClinicalNotesTxt(data) {
-  return `WellNest Clinical Session Notes
+  return `CalmRoot Clinical Session Notes
 =================================
 Session ID: ${data.sessionId || 'N/A'}
 Date: ${data.date || new Date().toISOString().split('T')[0]}
@@ -55,7 +55,7 @@ function generateClinicalNotesPdf(data) {
       });
 
       // Title
-      doc.fontSize(22).text('WellNest Clinical Session Notes', { align: 'center' });
+      doc.fontSize(22).text('CalmRoot Clinical Session Notes', { align: 'center' });
       doc.moveDown(1.5);
 
       // Metadata section

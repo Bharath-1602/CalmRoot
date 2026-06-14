@@ -6,11 +6,11 @@ COPY . .
 
 FROM node:20-alpine AS production
 WORKDIR /app
-RUN addgroup -S wellnest && adduser -S wellnest -G wellnest
+RUN addgroup -S calmroot && adduser -S calmroot -G calmroot
 COPY package*.json ./
 RUN npm install --omit=dev
 COPY --from=builder /app/src ./src
-USER wellnest
+USER calmroot
 EXPOSE 3002
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:3002/health || exit 1

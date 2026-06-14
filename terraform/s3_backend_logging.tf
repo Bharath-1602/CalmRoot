@@ -4,11 +4,11 @@
 
 # 1. S3 Bucket for Terraform Remote State
 resource "aws_s3_bucket" "tf_state" {
-  bucket        = "wellnest-tf-state-${var.aws_account_id}"
+  bucket        = "calmroot-tf-state-${var.aws_account_id}"
   force_destroy = false
 
   tags = {
-    Name      = "wellnest-tf-state-${var.aws_account_id}"
+    Name      = "calmroot-tf-state-${var.aws_account_id}"
     Purpose   = "Terraform State Storage"
     ManagedBy = "Terraform"
   }
@@ -42,7 +42,7 @@ resource "aws_s3_bucket_public_access_block" "tf_state" {
 
 # 2. DynamoDB Table for Terraform State Locking
 resource "aws_dynamodb_table" "tf_state_lock" {
-  name         = "wellnest-tf-state-lock"
+  name         = "calmroot-tf-state-lock"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "LockID"
 
@@ -52,7 +52,7 @@ resource "aws_dynamodb_table" "tf_state_lock" {
   }
 
   tags = {
-    Name      = "wellnest-tf-state-lock"
+    Name      = "calmroot-tf-state-lock"
     Purpose   = "Terraform State Locking"
     ManagedBy = "Terraform"
   }
@@ -60,11 +60,11 @@ resource "aws_dynamodb_table" "tf_state_lock" {
 
 # 3. S3 Bucket for Unified Website & VPC Flow Logs
 resource "aws_s3_bucket" "logs" {
-  bucket        = "wellnest-logs-${var.aws_account_id}"
+  bucket        = "calmroot-logs-${var.aws_account_id}"
   force_destroy = true
 
   tags = {
-    Name      = "wellnest-logs-${var.aws_account_id}"
+    Name      = "calmroot-logs-${var.aws_account_id}"
     Purpose   = "Unified Logs Storage"
     ManagedBy = "Terraform"
   }
@@ -149,7 +149,7 @@ resource "aws_flow_log" "vpc" {
   vpc_id               = module.vpc.vpc_id
 
   tags = {
-    Name      = "wellnest-${terraform.workspace}-vpc-flow-log"
+    Name      = "calmroot-${terraform.workspace}-vpc-flow-log"
     ManagedBy = "Terraform"
   }
 }

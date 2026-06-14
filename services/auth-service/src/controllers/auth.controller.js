@@ -7,7 +7,7 @@ const { getSecret } = require('../config/secrets-manager');
 const generateToken = (user) => {
   return jwt.sign(
     { sub: user._id, email: user.email, role: user.role, name: user.name },
-    getSecret('wellnest/production/jwt-secret'),
+    getSecret('calmroot/production/jwt-secret'),
     { algorithm: 'HS256', expiresIn: '24h' }
   );
 };
@@ -19,7 +19,9 @@ exports.register = async (req, res) => {
       return res.status(400).json({ success: false, message: errors.array()[0].msg });
     }
 
-    const { name, email, password, role, phone, therapistProfile } = req.body;
+    const { name, email, password, role, phone, therapistProfile,
+            emergencyContactName, emergencyContactEmail,
+            emergencyContactRelationship, emergencyContactConsent } = req.body;
 
     if (role === 'admin') {
       return res.status(403).json({ success: false, message: 'Admin accounts cannot be registered.' });
@@ -33,6 +35,16 @@ exports.register = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 12);
 
     const userData = { name, email: email.toLowerCase(), passwordHash, role: role || 'user', phone: phone || '' };
+
+    // Store emergency contact if provided
+    if (emergencyContactName || emergencyContactEmail) {
+      userData.emergencyContact = {
+        name: emergencyContactName || null,
+        email: emergencyContactEmail || null,
+        relationship: emergencyContactRelationship || null,
+        consentGiven: emergencyContactConsent || false
+      };
+    }
 
     if (role === 'therapist' && therapistProfile) {
       userData.therapistProfile = {

@@ -130,6 +130,18 @@ const Mood = () => {
         await api.post('/api/assessment/mood', payload);
         setHasLoggedToday(true);
       }
+
+      // Trigger wellness AI analysis
+      try {
+        await api.post('/api/wellness/analyze', {
+          moodScore,
+          moodNote: journalNote,
+          triggerSource: 'MOOD'
+        });
+      } catch (analError) {
+        console.error('Wellness AI analysis trigger failed:', analError);
+      }
+
       await fetchHistory();
     } catch (e) {
       alert(e.response?.data?.message || 'Failed to save mood');

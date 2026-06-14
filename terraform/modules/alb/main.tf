@@ -3,7 +3,7 @@
 # ==========================================
 
 resource "aws_lb" "public" {
-  name               = "wellnest-${terraform.workspace}-pb-alb"
+  name               = "calmroot-${terraform.workspace}-pb-alb"
   internal           = false
   load_balancer_type = "application"
   security_groups    = [var.public_alb_sg_id]
@@ -16,12 +16,12 @@ resource "aws_lb" "public" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-pb-alb"
+    Name = "calmroot-${terraform.workspace}-pb-alb"
   }
 }
 
 resource "aws_lb_target_group" "frontend" {
-  name        = "wellnest-${terraform.workspace}-fr-tg"
+  name        = "calmroot-${terraform.workspace}-fr-tg"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -38,7 +38,7 @@ resource "aws_lb_target_group" "frontend" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-frontend-tg"
+    Name = "calmroot-${terraform.workspace}-frontend-tg"
   }
 }
 
@@ -76,7 +76,7 @@ resource "aws_lb_listener" "public_https" {
 # ==========================================
 
 resource "aws_lb" "internal" {
-  name               = "wellnest-${terraform.workspace}-it-alb"
+  name               = "calmroot-${terraform.workspace}-it-alb"
   internal           = true
   load_balancer_type = "application"
   security_groups    = [var.internal_alb_sg_id]
@@ -89,13 +89,13 @@ resource "aws_lb" "internal" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-it-alb"
+    Name = "calmroot-${terraform.workspace}-it-alb"
   }
 }
 
 # Auth Target Group (Port 3001)
 resource "aws_lb_target_group" "auth" {
-  name        = "wellnest-${terraform.workspace}-au-tg"
+  name        = "calmroot-${terraform.workspace}-au-tg"
   port        = 3001
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -112,13 +112,13 @@ resource "aws_lb_target_group" "auth" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-auth-tg"
+    Name = "calmroot-${terraform.workspace}-auth-tg"
   }
 }
 
 # Assessment Target Group (Port 3002)
 resource "aws_lb_target_group" "assessment" {
-  name        = "wellnest-${terraform.workspace}-as-tg"
+  name        = "calmroot-${terraform.workspace}-as-tg"
   port        = 3002
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -135,13 +135,13 @@ resource "aws_lb_target_group" "assessment" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-assessment-tg"
+    Name = "calmroot-${terraform.workspace}-assessment-tg"
   }
 }
 
 # Therapist Target Group (Port 3003)
 resource "aws_lb_target_group" "therapist" {
-  name        = "wellnest-${terraform.workspace}-th-tg"
+  name        = "calmroot-${terraform.workspace}-th-tg"
   port        = 3003
   protocol    = "HTTP"
   vpc_id      = var.vpc_id
@@ -158,7 +158,7 @@ resource "aws_lb_target_group" "therapist" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-therapist-tg"
+    Name = "calmroot-${terraform.workspace}-therapist-tg"
   }
 }
 
@@ -173,7 +173,7 @@ resource "aws_lb_listener" "internal_http" {
 
     fixed_response {
       content_type = "text/plain"
-      message_body = "Not Found - WellNest Internal Route"
+      message_body = "Not Found - CalmRoot Internal Route"
       status_code  = "404"
     }
   }

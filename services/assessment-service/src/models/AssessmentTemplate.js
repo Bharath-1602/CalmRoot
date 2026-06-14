@@ -1,7 +1,7 @@
 const { ddbDocClient } = require('../config/dynamodb-client');
 const { PutCommand, GetCommand, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 
-const TABLE_NAME = 'wellnest-assessment-templates';
+const TABLE_NAME = 'calmroot-assessment-templates';
 
 function wrapTemplate(item) {
   if (!item) return null;

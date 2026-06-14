@@ -7,7 +7,7 @@ resource "aws_acm_certificate" "cert" {
   ]
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-acm-cert"
+    Name = "calmroot-${terraform.workspace}-acm-cert"
   }
 
   lifecycle {

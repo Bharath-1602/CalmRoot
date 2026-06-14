@@ -2,7 +2,7 @@
 # Security Group for Interface VPC Endpoints
 # ==========================================
 resource "aws_security_group" "endpoints" {
-  name        = "wellnest-${terraform.workspace}-vpc-endpoint-sg"
+  name        = "calmroot-${terraform.workspace}-vpc-endpoint-sg"
   description = "Security Group for Interface VPC Endpoints"
   vpc_id      = var.vpc_id
 
@@ -23,7 +23,7 @@ resource "aws_security_group" "endpoints" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-vpc-endpoint-sg"
+    Name = "calmroot-${terraform.workspace}-vpc-endpoint-sg"
   }
 }
 
@@ -39,7 +39,7 @@ resource "aws_vpc_endpoint" "s3" {
   route_table_ids   = var.app_private_route_table_ids
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-vpce-s3"
+    Name = "calmroot-${terraform.workspace}-vpce-s3"
   }
 }
 
@@ -51,7 +51,7 @@ resource "aws_vpc_endpoint" "dynamodb" {
   route_table_ids   = var.app_private_route_table_ids
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-vpce-ddb"
+    Name = "calmroot-${terraform.workspace}-vpce-ddb"
   }
 }
 
@@ -69,7 +69,7 @@ resource "aws_vpc_endpoint" "secretsmanager" {
   private_dns_enabled = true
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-vpce-secrets"
+    Name = "calmroot-${terraform.workspace}-vpce-secrets"
   }
 }
 
@@ -83,7 +83,7 @@ resource "aws_vpc_endpoint" "kms" {
   private_dns_enabled = true
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-vpce-kms"
+    Name = "calmroot-${terraform.workspace}-vpce-kms"
   }
 }
 
@@ -97,6 +97,6 @@ resource "aws_vpc_endpoint" "logs" {
   private_dns_enabled = true
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-vpce-logs"
+    Name = "calmroot-${terraform.workspace}-vpce-logs"
   }
 }

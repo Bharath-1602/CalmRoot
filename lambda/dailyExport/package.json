@@ -1,7 +1,7 @@
 {
-  "name": "wellnest-daily-export-lambda",
+  "name": "calmroot-daily-export-lambda",
   "version": "1.0.0",
-  "description": "Lambda function to daily export WellNest DynamoDB logs to S3",
+  "description": "Lambda function to daily export CalmRoot DynamoDB logs to S3",
   "main": "index.js",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.500.0",

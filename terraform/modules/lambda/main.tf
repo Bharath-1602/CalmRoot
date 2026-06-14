@@ -17,7 +17,7 @@ data "archive_file" "alarm_notifier" {
 # IAM Roles & Policies for Daily Export Lambda
 # ==========================================
 resource "aws_iam_role" "daily_export" {
-  name = "wellnest-${terraform.workspace}-daily-export-role"
+  name = "calmroot-${terraform.workspace}-daily-export-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -33,12 +33,12 @@ resource "aws_iam_role" "daily_export" {
   })
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-daily-export-role"
+    Name = "calmroot-${terraform.workspace}-daily-export-role"
   }
 }
 
 resource "aws_iam_role_policy" "daily_export" {
-  name = "wellnest-${terraform.workspace}-daily-export-policy"
+  name = "calmroot-${terraform.workspace}-daily-export-policy"
   role = aws_iam_role.daily_export.id
 
   policy = jsonencode({
@@ -52,8 +52,8 @@ resource "aws_iam_role_policy" "daily_export" {
           "dynamodb:Query"
         ]
         Resource = [
-          "arn:aws:dynamodb:us-east-1:${var.aws_account_id}:table/wellnest-assessments",
-          "arn:aws:dynamodb:us-east-1:${var.aws_account_id}:table/wellnest-mood-logs"
+          "arn:aws:dynamodb:us-east-1:${var.aws_account_id}:table/calmroot-assessments",
+          "arn:aws:dynamodb:us-east-1:${var.aws_account_id}:table/calmroot-mood-logs"
         ]
       },
       # S3 Access
@@ -63,8 +63,8 @@ resource "aws_iam_role_policy" "daily_export" {
           "s3:PutObject"
         ]
         Resource = [
-          "arn:aws:s3:::wellnest-daily-exports",
-          "arn:aws:s3:::wellnest-daily-exports/*"
+          "arn:aws:s3:::calmroot-daily-exports",
+          "arn:aws:s3:::calmroot-daily-exports/*"
         ]
       },
       # KMS Decrypt/GenerateDataKey Access
@@ -84,8 +84,8 @@ resource "aws_iam_role_policy" "daily_export" {
           "logs:PutLogEvents"
         ]
         Resource = [
-          "arn:aws:logs:us-east-1:${var.aws_account_id}:log-group:/aws/lambda/wellnest-daily-export",
-          "arn:aws:logs:us-east-1:${var.aws_account_id}:log-group:/aws/lambda/wellnest-daily-export:*"
+          "arn:aws:logs:us-east-1:${var.aws_account_id}:log-group:/aws/lambda/calmroot-daily-export",
+          "arn:aws:logs:us-east-1:${var.aws_account_id}:log-group:/aws/lambda/calmroot-daily-export:*"
         ]
       }
     ]
@@ -96,7 +96,7 @@ resource "aws_iam_role_policy" "daily_export" {
 # IAM Roles & Policies for Alarm Notifier Lambda
 # ==========================================
 resource "aws_iam_role" "alarm_notifier" {
-  name = "wellnest-${terraform.workspace}-alarm-notifier-role"
+  name = "calmroot-${terraform.workspace}-alarm-notifier-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -112,12 +112,12 @@ resource "aws_iam_role" "alarm_notifier" {
   })
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-alarm-notifier-role"
+    Name = "calmroot-${terraform.workspace}-alarm-notifier-role"
   }
 }
 
 resource "aws_iam_role_policy" "alarm_notifier" {
-  name = "wellnest-${terraform.workspace}-alarm-notifier-policy"
+  name = "calmroot-${terraform.workspace}-alarm-notifier-policy"
   role = aws_iam_role.alarm_notifier.id
 
   policy = jsonencode({
@@ -157,8 +157,8 @@ resource "aws_iam_role_policy" "alarm_notifier" {
           "logs:PutLogEvents"
         ]
         Resource = [
-          "arn:aws:logs:us-east-1:${var.aws_account_id}:log-group:/aws/lambda/wellnest-${terraform.workspace}-alarm-notifier",
-          "arn:aws:logs:us-east-1:${var.aws_account_id}:log-group:/aws/lambda/wellnest-${terraform.workspace}-alarm-notifier:*"
+          "arn:aws:logs:us-east-1:${var.aws_account_id}:log-group:/aws/lambda/calmroot-${terraform.workspace}-alarm-notifier",
+          "arn:aws:logs:us-east-1:${var.aws_account_id}:log-group:/aws/lambda/calmroot-${terraform.workspace}-alarm-notifier:*"
         ]
       }
     ]
@@ -171,7 +171,7 @@ resource "aws_iam_role_policy" "alarm_notifier" {
 
 # 1. Daily Export Lambda
 resource "aws_lambda_function" "daily_export" {
-  function_name    = "wellnest-daily-export"
+  function_name    = "calmroot-daily-export"
   role             = aws_iam_role.daily_export.arn
   handler          = "index.handler"
   runtime          = "nodejs20.x"
@@ -183,13 +183,13 @@ resource "aws_lambda_function" "daily_export" {
   # Environment block removed or left empty to avoid reserved AWS_REGION key issue
 
   tags = {
-    Name = "wellnest-daily-export"
+    Name = "calmroot-daily-export"
   }
 }
 
 # 2. Alarm Notifier Lambda
 resource "aws_lambda_function" "alarm_notifier" {
-  function_name    = "wellnest-${terraform.workspace}-alarm-notifier"
+  function_name    = "calmroot-${terraform.workspace}-alarm-notifier"
   role             = aws_iam_role.alarm_notifier.arn
   handler          = "index.lambda_handler"
   runtime          = "python3.12"
@@ -207,7 +207,7 @@ resource "aws_lambda_function" "alarm_notifier" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-alarm-notifier"
+    Name = "calmroot-${terraform.workspace}-alarm-notifier"
   }
 }
 
@@ -215,12 +215,12 @@ resource "aws_lambda_function" "alarm_notifier" {
 # EventBridge Rules & Triggers (Daily at Midnight UTC)
 # ==========================================
 resource "aws_cloudwatch_event_rule" "daily_export" {
-  name                = "wellnest-${terraform.workspace}-daily-export-trigger"
+  name                = "calmroot-${terraform.workspace}-daily-export-trigger"
   description         = "Trigger daily assessments and mood logs S3 export at midnight UTC"
   schedule_expression = "cron(0 0 * * ? *)"
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-daily-export-trigger"
+    Name = "calmroot-${terraform.workspace}-daily-export-trigger"
   }
 }
 
@@ -246,5 +246,5 @@ resource "aws_lambda_permission" "allow_sns" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.alarm_notifier.function_name
   principal     = "sns.amazonaws.com"
-  source_arn    = "arn:aws:sns:us-east-1:${var.aws_account_id}:wellnest-${terraform.workspace}-ops-alarms-raw"
+  source_arn    = "arn:aws:sns:us-east-1:${var.aws_account_id}:calmroot-${terraform.workspace}-ops-alarms-raw"
 }

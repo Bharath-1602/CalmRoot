@@ -75,7 +75,7 @@ const AdminDashboard = () => {
       <nav className="bg-accent text-white p-4 flex justify-between items-center sticky top-0 shadow-md z-10">
         <div className="flex items-center gap-2 text-xl font-bold">
           <ShieldCheck className="w-6 h-6 text-secondary" />
-          WellNest Admin Portal
+          CalmRoot Admin Portal
         </div>
         <button 
           onClick={handleLogout} 

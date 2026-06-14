@@ -7,7 +7,7 @@ module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
 
-  name = "wellnest-${terraform.workspace}-vpc"
+  name = "calmroot-${terraform.workspace}-vpc"
   cidr = var.vpc_cidr
 
   azs             = ["us-east-1a", "us-east-1b"]
@@ -160,7 +160,7 @@ module "lambda" {
   project_name   = var.project_name
   aws_account_id = data.aws_caller_identity.current.account_id
   kms_key_arn    = module.kms.key_arn
-  sns_topic_arn  = "arn:aws:sns:us-east-1:${data.aws_caller_identity.current.account_id}:wellnest-${terraform.workspace}-ops-alarms"
+  sns_topic_arn  = "arn:aws:sns:us-east-1:${data.aws_caller_identity.current.account_id}:calmroot-${terraform.workspace}-ops-alarms"
   ops_email      = var.ops_email
 }
 

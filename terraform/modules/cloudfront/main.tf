@@ -1,7 +1,7 @@
 resource "aws_cloudfront_distribution" "cdn" {
   enabled             = true
   is_ipv6_enabled     = true
-  comment             = "WellNest CDN Distribution for ${terraform.workspace}"
+  comment             = "CalmRoot CDN Distribution for ${terraform.workspace}"
   price_class         = "PriceClass_200"
   aliases             = [var.domain_name, "www.${var.domain_name}"]
   web_acl_id          = var.waf_arn
@@ -74,6 +74,6 @@ resource "aws_cloudfront_distribution" "cdn" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-cloudfront"
+    Name = "calmroot-${terraform.workspace}-cloudfront"
   }
 }

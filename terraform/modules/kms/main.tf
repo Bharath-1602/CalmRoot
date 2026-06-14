@@ -1,11 +1,11 @@
-resource "aws_kms_key" "wellnest" {
-  description             = "WellNest encryption key for CloudWatch logs, SNS, and Lambdas"
+resource "aws_kms_key" "calmroot" {
+  description             = "CalmRoot encryption key for CloudWatch logs, SNS, and Lambdas"
   deletion_window_in_days = 30
   enable_key_rotation     = true
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Id      = "wellnest-key-policy"
+    Id      = "calmroot-key-policy"
     Statement = [
       # 1. Root account full access (delegates permission management to IAM policies)
       {
@@ -22,7 +22,7 @@ resource "aws_kms_key" "wellnest" {
         Sid       = "Allow Backend EC2 Role Access"
         Effect    = "Allow"
         Principal = {
-          AWS = "arn:aws:iam::${var.aws_account_id}:role/wellnest-backend-ec2-role"
+          AWS = "arn:aws:iam::${var.aws_account_id}:role/calmroot-backend-ec2-role"
         }
         Action    = [
           "kms:Encrypt",
@@ -38,8 +38,8 @@ resource "aws_kms_key" "wellnest" {
         Effect    = "Allow"
         Principal = {
           AWS = [
-            "arn:aws:iam::${var.aws_account_id}:role/wellnest-${terraform.workspace}-daily-export-role",
-            "arn:aws:iam::${var.aws_account_id}:role/wellnest-${terraform.workspace}-alarm-notifier-role"
+            "arn:aws:iam::${var.aws_account_id}:role/calmroot-${terraform.workspace}-daily-export-role",
+            "arn:aws:iam::${var.aws_account_id}:role/calmroot-${terraform.workspace}-alarm-notifier-role"
           ]
         }
         Action    = [
@@ -96,11 +96,11 @@ resource "aws_kms_key" "wellnest" {
   })
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-kms-key"
+    Name = "calmroot-${terraform.workspace}-kms-key"
   }
 }
 
-resource "aws_kms_alias" "wellnest" {
-  name          = "alias/wellnest-${terraform.workspace}-key"
-  target_key_id = aws_kms_key.wellnest.key_id
+resource "aws_kms_alias" "calmroot" {
+  name          = "alias/calmroot-${terraform.workspace}-key"
+  target_key_id = aws_kms_key.calmroot.key_id
 }

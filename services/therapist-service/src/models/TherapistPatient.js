@@ -1,7 +1,7 @@
 const { ddbDocClient } = require('../config/dynamodb-client');
 const { PutCommand, QueryCommand, GetCommand } = require('@aws-sdk/lib-dynamodb');
 
-const TABLE_NAME = 'wellnest-therapist-patients';
+const TABLE_NAME = 'calmroot-therapist-patients';
 
 const TherapistPatient = {
   assignPatient: async function (data) {

@@ -28,7 +28,7 @@ app.use((err, req, res, next) => {
 
 const start = async () => {
   try {
-    await initializeSecrets(['wellnest/production/jwt-secret']);
+    await initializeSecrets(['calmroot/production/jwt-secret']);
     await seedTemplates();
     app.listen(PORT, () => {
       console.log(`Assessment service running on port ${PORT}`);

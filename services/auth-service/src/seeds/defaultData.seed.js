@@ -4,7 +4,7 @@ const User = require('../models/User');
 const defaultTherapists = [
   {
     name: 'Dr. Priya Sharma',
-    email: 'priya.sharma@wellnest.com',
+    email: 'priya.sharma@calmroot.com',
     password: 'therapist123',
     phone: '9876543210',
     therapistProfile: {
@@ -23,7 +23,7 @@ const defaultTherapists = [
   },
   {
     name: 'Dr. Arjun Mehta',
-    email: 'arjun.mehta@wellnest.com',
+    email: 'arjun.mehta@calmroot.com',
     password: 'therapist123',
     phone: '9876543211',
     therapistProfile: {
@@ -42,7 +42,7 @@ const defaultTherapists = [
   },
   {
     name: 'Ms. Kavya Nair',
-    email: 'kavya.nair@wellnest.com',
+    email: 'kavya.nair@calmroot.com',
     password: 'therapist123',
     phone: '9876543212',
     therapistProfile: {
@@ -61,7 +61,7 @@ const defaultTherapists = [
   },
   {
     name: 'Dr. Rohan Verma',
-    email: 'rohan.verma@wellnest.com',
+    email: 'rohan.verma@calmroot.com',
     password: 'therapist123',
     phone: '9876543213',
     therapistProfile: {
@@ -80,7 +80,7 @@ const defaultTherapists = [
   },
   {
     name: 'Ms. Sneha Pillai',
-    email: 'sneha.pillai@wellnest.com',
+    email: 'sneha.pillai@calmroot.com',
     password: 'therapist123',
     phone: '9876543214',
     therapistProfile: {
@@ -101,7 +101,7 @@ const defaultTherapists = [
 
 const runDefaultSeed = async () => {
   try {
-    const adminExists = await User.findOne({ email: 'admin@wellnest.com' });
+    const adminExists = await User.findOne({ email: 'admin@calmroot.com' });
     if (adminExists) {
       console.log('Default data already seeded. Skipping.');
       return;
@@ -109,13 +109,13 @@ const runDefaultSeed = async () => {
 
     const adminHash = await bcrypt.hash('123456', 12);
     await User.create({
-      name: 'WellNest Admin',
-      email: 'admin@wellnest.com',
+      name: 'CalmRoot Admin',
+      email: 'admin@calmroot.com',
       passwordHash: adminHash,
       role: 'admin',
       isActive: true
     });
-    console.log('Created: WellNest Admin (admin)');
+    console.log('Created: CalmRoot Admin (admin)');
 
     for (const t of defaultTherapists) {
       const hash = await bcrypt.hash(t.password, 12);

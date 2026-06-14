@@ -8,10 +8,10 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "wellnest-tf-state-006805625766"
+    bucket         = "calmroot-tf-state-006805625766"
     key            = "state/terraform.tfstate"
     region         = "us-east-1"
-    dynamodb_table = "wellnest-tf-state-lock"
+    dynamodb_table = "calmroot-tf-state-lock"
     encrypt        = true
   }
 }

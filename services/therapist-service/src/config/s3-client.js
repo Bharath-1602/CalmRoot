@@ -6,7 +6,7 @@ const s3Client = new S3Client({
   region
 });
 
-const CLINICAL_NOTES_BUCKET = process.env.CLINICAL_NOTES_BUCKET || 'wellnest-clinical-notes';
+const CLINICAL_NOTES_BUCKET = process.env.CLINICAL_NOTES_BUCKET || 'calmroot-clinical-notes';
 
 module.exports = {
   s3Client,

@@ -24,6 +24,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 // Components
 import ProtectedRoute from './components/shared/ProtectedRoute';
 import LoadingSpinner from './components/shared/LoadingSpinner';
+import SageChatWidget from './components/shared/SageChatWidget';
 
 function App() {
   const { isLoading } = useAuth();
@@ -64,6 +65,7 @@ function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <SageChatWidget />
     </Router>
   );
 }

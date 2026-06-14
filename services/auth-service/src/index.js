@@ -5,6 +5,7 @@ const cors = require('cors');
 const morgan = require('morgan');
 const { initializeSecrets } = require('./config/secrets-manager');
 const authRoutes = require('./routes/auth.routes');
+const wellnessRoutes = require('./routes/wellness');
 const { runDefaultSeed } = require('./seeds/defaultData.seed');
 
 const app = express();
@@ -20,6 +21,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/wellness', wellnessRoutes);
 
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
@@ -28,7 +30,7 @@ app.use((err, req, res, next) => {
 
 const start = async () => {
   try {
-    await initializeSecrets(['wellnest/production/jwt-secret']);
+    await initializeSecrets(['calmroot/production/jwt-secret']);
     await runDefaultSeed();
     app.listen(PORT, () => {
       console.log(`Auth service running on port ${PORT}`);

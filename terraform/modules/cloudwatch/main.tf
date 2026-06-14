@@ -3,12 +3,12 @@
 # ==========================================
 locals {
   log_groups = [
-    "/wellnest/backend/auth-service",
-    "/wellnest/backend/assessment-service",
-    "/wellnest/backend/therapist-service",
-    "/wellnest/backend/cloud-init",
-    "/aws/lambda/wellnest-daily-export",
-    "/aws/lambda/wellnest-${terraform.workspace}-alarm-notifier"
+    "/calmroot/backend/auth-service",
+    "/calmroot/backend/assessment-service",
+    "/calmroot/backend/therapist-service",
+    "/calmroot/backend/cloud-init",
+    "/aws/lambda/calmroot-daily-export",
+    "/aws/lambda/calmroot-${terraform.workspace}-alarm-notifier"
   ]
 }
 
@@ -19,7 +19,7 @@ resource "aws_cloudwatch_log_group" "logs" {
   kms_key_id        = var.kms_key_arn
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-log-group"
+    Name = "calmroot-${terraform.workspace}-log-group"
   }
 }
 
@@ -29,7 +29,7 @@ resource "aws_cloudwatch_log_group" "logs" {
 
 # Alarm 1: ALB 5XX Error Rate
 resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
-  alarm_name          = "wellnest-${terraform.workspace}-alb-5xx-errors"
+  alarm_name          = "calmroot-${terraform.workspace}-alb-5xx-errors"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   metric_name         = "HTTPCode_ELB_5XX_Count"
@@ -45,13 +45,13 @@ resource "aws_cloudwatch_metric_alarm" "alb_5xx" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-alb-5xx-alarm"
+    Name = "calmroot-${terraform.workspace}-alb-5xx-alarm"
   }
 }
 
 # Alarm 2: Backend CPU Utilization
 resource "aws_cloudwatch_metric_alarm" "backend_cpu" {
-  alarm_name          = "wellnest-${terraform.workspace}-backend-high-cpu"
+  alarm_name          = "calmroot-${terraform.workspace}-backend-high-cpu"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   metric_name         = "CPUUtilization"
@@ -67,13 +67,13 @@ resource "aws_cloudwatch_metric_alarm" "backend_cpu" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-backend-cpu-alarm"
+    Name = "calmroot-${terraform.workspace}-backend-cpu-alarm"
   }
 }
 
 # Alarm 3: Frontend CPU Utilization
 resource "aws_cloudwatch_metric_alarm" "frontend_cpu" {
-  alarm_name          = "wellnest-${terraform.workspace}-frontend-high-cpu"
+  alarm_name          = "calmroot-${terraform.workspace}-frontend-high-cpu"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   metric_name         = "CPUUtilization"
@@ -89,13 +89,13 @@ resource "aws_cloudwatch_metric_alarm" "frontend_cpu" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-frontend-cpu-alarm"
+    Name = "calmroot-${terraform.workspace}-frontend-cpu-alarm"
   }
 }
 
 # Alarm 4: Daily Export Lambda Errors
 resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
-  alarm_name          = "wellnest-${terraform.workspace}-lambda-export-errors"
+  alarm_name          = "calmroot-${terraform.workspace}-lambda-export-errors"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 1
   metric_name         = "Errors"
@@ -107,17 +107,17 @@ resource "aws_cloudwatch_metric_alarm" "lambda_errors" {
   alarm_actions       = [var.raw_sns_topic_arn]
 
   dimensions = {
-    FunctionName = "wellnest-daily-export"
+    FunctionName = "calmroot-daily-export"
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-lambda-errors-alarm"
+    Name = "calmroot-${terraform.workspace}-lambda-errors-alarm"
   }
 }
 
 # Alarm 5: Unhealthy Hosts on Internal ALB Target Groups
 resource "aws_cloudwatch_metric_alarm" "unhealthy_hosts" {
-  alarm_name          = "wellnest-${terraform.workspace}-unhealthy-hosts"
+  alarm_name          = "calmroot-${terraform.workspace}-unhealthy-hosts"
   comparison_operator = "GreaterThanThreshold"
   evaluation_periods  = 2
   metric_name         = "UnHealthyHostCount"
@@ -134,6 +134,6 @@ resource "aws_cloudwatch_metric_alarm" "unhealthy_hosts" {
   }
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-unhealthy-hosts-alarm"
+    Name = "calmroot-${terraform.workspace}-unhealthy-hosts-alarm"
   }
 }

@@ -12,6 +12,10 @@ export default defineConfig({
         target: process.env.VITE_AUTH_URL || 'http://localhost:3001',
         changeOrigin: true
       },
+      '/api/wellness': {
+        target: process.env.VITE_AUTH_URL || 'http://localhost:3001',
+        changeOrigin: true
+      },
       '/api/assessment': {
         target: process.env.VITE_ASSESSMENT_URL || 'http://localhost:3002',
         changeOrigin: true

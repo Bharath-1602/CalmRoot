@@ -13,6 +13,6 @@ resource "aws_instance" "bastion" {
   associate_public_ip_address = true
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-bastion"
+    Name = "calmroot-${terraform.workspace}-bastion"
   }
 }

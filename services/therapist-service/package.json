@@ -1,7 +1,7 @@
 {
-  "name": "wellnest-therapist-service",
+  "name": "calmroot-therapist-service",
   "version": "1.0.0",
-  "description": "WellNest Therapist & Session Management Service",
+  "description": "CalmRoot Therapist & Session Management Service",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

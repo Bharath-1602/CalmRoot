@@ -2,7 +2,7 @@ const { ddbDocClient } = require('../config/dynamodb-client');
 const { PutCommand, GetCommand, QueryCommand, ScanCommand } = require('@aws-sdk/lib-dynamodb');
 const crypto = require('crypto');
 
-const TABLE_NAME = 'wellnest-users';
+const TABLE_NAME = 'calmroot-users';
 
 function wrapUser(item) {
   if (!item) return null;

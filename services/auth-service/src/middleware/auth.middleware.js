@@ -8,7 +8,7 @@ const authenticate = (req, res, next) => {
   }
   try {
     const token = authHeader.split(' ')[1];
-    const decoded = jwt.verify(token, getSecret('wellnest/production/jwt-secret'));
+    const decoded = jwt.verify(token, getSecret('calmroot/production/jwt-secret'));
     req.user = decoded;
     next();
   } catch (error) {

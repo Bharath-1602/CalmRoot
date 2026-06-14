@@ -1,15 +1,17 @@
 {
-  "name": "wellnest-auth-service",
+  "name": "calmroot-auth-service",
   "version": "1.0.0",
-  "description": "WellNest Authentication & User Management Service",
+  "description": "CalmRoot Authentication & User Management Service",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.500.0",
     "@aws-sdk/client-dynamodb": "^3.500.0",
     "@aws-sdk/client-secrets-manager": "^3.500.0",
+    "@aws-sdk/client-ses": "^3.500.0",
     "@aws-sdk/lib-dynamodb": "^3.500.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -19,7 +21,8 @@
     "express-validator": "^7.0.1",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0"
+    "morgan": "^1.10.0",
+    "nodemailer": "^6.9.9"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"

@@ -1,8 +1,8 @@
-# WellNest - Mental Health Platform
+# CalmRoot - Mental Health Platform
 
-WellNest is a modern mental health self-assessment and therapist connect platform. Users can take clinical assessments (PHQ-9, GAD-7), track their daily mood, and book sessions with verified therapists.
+CalmRoot is a modern mental health self-assessment and therapist connect platform. Users can take clinical assessments (PHQ-9, GAD-7), track their daily mood, and book sessions with verified therapists.
 
-![WellNest](https://via.placeholder.com/1200x600/0369A1/FFFFFF?text=WellNest+Mental+Health+Platform)
+![CalmRoot](https://via.placeholder.com/1200x600/0369A1/FFFFFF?text=CalmRoot+Mental+Health+Platform)
 
 ## Tech Stack
 *   **Backend:** Node.js, Express.js (Microservices Architecture)
@@ -46,8 +46,8 @@ The application is split into 3 distinct microservices to ensure scalability and
 
 ## Default Seed Data
 On startup, the system automatically seeds:
-*   **Admin User:** `admin@wellnest.com` / `admin123`
-*   **5 Verified Therapists:** (e.g., `sarah.chen@wellnest.com` / `Therapist@1`)
+*   **Admin User:** `admin@calmroot.com` / `admin123`
+*   **5 Verified Therapists:** (e.g., `sarah.chen@calmroot.com` / `Therapist@1`)
 *   **3 Assessment Templates:** PHQ-9, GAD-7, Daily Wellness Check.
 *   **Therapist Schedules:** Default Mon-Sat availability for all seeded therapists.
 

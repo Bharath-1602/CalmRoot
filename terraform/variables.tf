@@ -7,7 +7,7 @@ variable "aws_region" {
 variable "project_name" {
   description = "Project name for tagging and naming"
   type        = string
-  default     = "WellNest"
+  default     = "CalmRoot"
 }
 
 variable "aws_account_id" {
@@ -25,13 +25,13 @@ variable "key_name" {
 variable "github_repo" {
   description = "GitHub Repository URL for cloning application codebase"
   type        = string
-  default     = "https://github.com/Bharath-1602/WellNest-AWS.git"
+  default     = "https://github.com/Bharath-1602/CalmRoot-AWS.git"
 }
 
 variable "domain_name" {
   description = "Domain name registered for the platform"
   type        = string
-  default     = "wellnest-project.online"
+  default     = "calmroot-project.online"
 }
 
 variable "ops_email" {
@@ -145,12 +145,12 @@ variable "existing_dynamodb_tables" {
   description = "List of existing DynamoDB tables used by the application"
   type        = list(string)
   default = [
-    "wellnest-users",
-    "wellnest-assessment-templates",
-    "wellnest-assessments",
-    "wellnest-mood-logs",
-    "wellnest-sessions",
-    "wellnest-therapist-patients"
+    "calmroot-users",
+    "calmroot-assessment-templates",
+    "calmroot-assessments",
+    "calmroot-mood-logs",
+    "calmroot-sessions",
+    "calmroot-therapist-patients"
   ]
 }
 
@@ -158,8 +158,8 @@ variable "existing_s3_buckets" {
   description = "List of existing S3 buckets used by the application"
   type        = list(string)
   default = [
-    "wellnest-clinical-notes",
-    "wellnest-daily-exports"
+    "calmroot-clinical-notes",
+    "calmroot-daily-exports"
   ]
 }
 
@@ -167,7 +167,7 @@ variable "existing_secrets" {
   description = "List of existing Secrets Manager secrets path"
   type        = list(string)
   default = [
-    "wellnest/production/jwt-secret",
-    "wellnest/production/app-config"
+    "calmroot/production/jwt-secret",
+    "calmroot/production/app-config"
   ]
 }

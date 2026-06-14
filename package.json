@@ -1,0 +1,14 @@
+{
+  "name": "calmroot-root",
+  "version": "1.0.0",
+  "description": "CalmRoot Root Workspace & Scripts",
+  "private": true,
+  "scripts": {
+    "create-resources": "node create_aws_resources.js",
+    "rebrand": "node rebrand_all.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.500.0",
+    "@aws-sdk/client-s3": "^3.500.0"
+  }
+}

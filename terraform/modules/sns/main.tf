@@ -1,20 +1,20 @@
 # SNS Raw Alarms Topic (Alarms publish raw JSON here -> triggers Lambda)
 resource "aws_sns_topic" "raw_alarms" {
-  name              = "wellnest-${terraform.workspace}-ops-alarms-raw"
+  name              = "calmroot-${terraform.workspace}-ops-alarms-raw"
   kms_master_key_id = var.kms_key_arn
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-ops-alarms-raw"
+    Name = "calmroot-${terraform.workspace}-ops-alarms-raw"
   }
 }
 
 # SNS Ops Alarms Topic (Lambda publishes formatted HTML here -> sends Email)
 resource "aws_sns_topic" "ops_alarms" {
-  name              = "wellnest-${terraform.workspace}-ops-alarms"
+  name              = "calmroot-${terraform.workspace}-ops-alarms"
   kms_master_key_id = var.kms_key_arn
 
   tags = {
-    Name = "wellnest-${terraform.workspace}-ops-alarms"
+    Name = "calmroot-${terraform.workspace}-ops-alarms"
   }
 }
 
