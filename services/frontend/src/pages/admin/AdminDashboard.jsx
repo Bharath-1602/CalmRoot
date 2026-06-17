@@ -16,6 +16,7 @@ const AdminDashboard = () => {
     { role: 'assistant', content: 'Hello! I am your CalmRoot Platform Assistant. Ask me about monthly revenue, top earners, or platform status.' }
   ]);
   const [isTyping, setIsTyping] = useState(false);
+  const [customQuery, setCustomQuery] = useState('');
 
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -65,36 +66,89 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleBotQuery = (queryType) => {
+  const handleCustomQuery = (text) => {
+    if (!text.trim() || isTyping) return;
     setIsTyping(true);
+
+    const query = text.toLowerCase();
     let reply = '';
-    let userQuery = '';
-    
-    if (queryType === 'revenue') {
-      userQuery = 'Explain monthly performance';
+
+    // Add user message immediately
+    setBotMessages(prev => [...prev, { role: 'user', content: text }]);
+
+    if (
+      query.includes('revenue') || 
+      query.includes('earn') || 
+      query.includes('money') || 
+      query.includes('performance') || 
+      query.includes('profit') || 
+      query.includes('income') || 
+      query.includes('billing')
+    ) {
       reply = `This month, CalmRoot has generated ₹${stats?.monthlyRevenue || 0} in revenue. All-time platform revenue stands at ₹${stats?.totalRevenue || 0} across ${stats?.totalSessions || 0} total sessions.`;
-    } else if (queryType === 'earner') {
-      userQuery = 'Who is the top earner?';
+    } else if (
+      query.includes('top') || 
+      query.includes('best') || 
+      query.includes('highest') || 
+      query.includes('performer') || 
+      query.includes('sharma') || 
+      query.includes('priya')
+    ) {
       const top = stats?.revenueByTherapist?.[0];
       if (top) {
         reply = `Our top performing therapist is ${top.therapistName}, who has generated ₹${top.revenue} from ${top.sessionCount} completed sessions.`;
       } else {
         reply = "We don't have any therapist earnings recorded yet.";
       }
-    } else if (queryType === 'trends') {
-      userQuery = 'What are the session trends?';
+    } else if (
+      query.includes('trend') || 
+      query.includes('platform') || 
+      query.includes('stat') || 
+      query.includes('status') || 
+      query.includes('registered') || 
+      query.includes('active') || 
+      query.includes('total') || 
+      query.includes('awaiting') || 
+      query.includes('verify')
+    ) {
       const pending = therapists.filter(t => !t.therapistProfile?.isVerified).length;
       reply = `We currently have ${stats?.totalSessions || 0} total sessions. There are ${therapists.length} registered therapists, with ${pending} awaiting verification. Completed sessions this month: ${stats?.completedThisMonth || 0}.`;
+    } else if (
+      query.includes('hi') || 
+      query.includes('hello') || 
+      query.includes('hey') || 
+      query.includes('help') || 
+      query.includes('assistant')
+    ) {
+      reply = `Hello! I am your CalmRoot Platform Assistant. Ask me about monthly revenue, top earners, or platform status. You can type your question or use the quick buttons below.`;
+    } else {
+      reply = `I'm sorry, I couldn't find a direct match for that query. Try asking about "monthly revenue", "top earners", or "platform trends" using the quick buttons or custom typing!`;
     }
 
     setTimeout(() => {
       setBotMessages(prev => [
         ...prev,
-        { role: 'user', content: userQuery },
         { role: 'assistant', content: reply }
       ]);
       setIsTyping(false);
     }, 600);
+  };
+
+  const handleBotQuery = (queryType) => {
+    let qText = '';
+    if (queryType === 'revenue') qText = 'Explain monthly performance';
+    else if (queryType === 'earner') qText = 'Who is the top earner?';
+    else if (queryType === 'trends') qText = 'What are the session trends?';
+    
+    handleCustomQuery(qText);
+  };
+
+  const handleSendCustom = (e) => {
+    e.preventDefault();
+    if (!customQuery.trim() || isTyping) return;
+    const queryText = customQuery.trim();
+    setCustomQuery('');
+    handleCustomQuery(queryText);
   };
 
   const handleLogout = () => {
@@ -353,32 +407,55 @@ const AdminDashboard = () => {
                 )}
               </div>
 
-              {/* Bottom Quick Queries */}
-              <div className="p-3 border-t border-border bg-surface-alt space-y-2">
-                <div className="text-[9px] uppercase font-bold text-muted tracking-wider">Ask Assistant:</div>
-                <div className="flex flex-wrap gap-1.5">
-                  <button
-                    onClick={() => handleBotQuery('revenue')}
-                    disabled={isTyping}
-                    className="px-2 py-1 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold rounded-lg hover:bg-primary/20 transition-colors"
-                  >
-                    💰 Explain Revenue
-                  </button>
-                  <button
-                    onClick={() => handleBotQuery('earner')}
-                    disabled={isTyping}
-                    className="px-2 py-1 bg-secondary/10 border border-secondary/20 text-secondary text-[10px] font-bold rounded-lg hover:bg-secondary/20 transition-colors"
-                  >
-                    🏆 Top Earner
-                  </button>
-                  <button
-                    onClick={() => handleBotQuery('trends')}
-                    disabled={isTyping}
-                    className="px-2 py-1 bg-warning/10 border border-warning/20 text-warning text-[10px] font-bold rounded-lg hover:bg-warning/20 transition-colors"
-                  >
-                    📊 Platform Trends
-                  </button>
+              {/* Bottom Quick Queries & Custom Input */}
+              <div className="p-3 border-t border-border bg-surface-alt space-y-3">
+                <div className="space-y-1.5">
+                  <div className="text-[9px] uppercase font-bold text-muted tracking-wider">Quick Ask:</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleBotQuery('revenue')}
+                      disabled={isTyping}
+                      className="px-2 py-1 bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold rounded-lg hover:bg-primary/20 transition-colors"
+                    >
+                      💰 Explain Revenue
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleBotQuery('earner')}
+                      disabled={isTyping}
+                      className="px-2 py-1 bg-secondary/10 border border-secondary/20 text-secondary text-[10px] font-bold rounded-lg hover:bg-secondary/20 transition-colors"
+                    >
+                      🏆 Top Earner
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleBotQuery('trends')}
+                      disabled={isTyping}
+                      className="px-2 py-1 bg-warning/10 border border-warning/20 text-warning text-[10px] font-bold rounded-lg hover:bg-warning/20 transition-colors"
+                    >
+                      📊 Platform Trends
+                    </button>
+                  </div>
                 </div>
+
+                <form onSubmit={handleSendCustom} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customQuery}
+                    onChange={(e) => setCustomQuery(e.target.value)}
+                    placeholder="Ask about revenue, earners, trends..."
+                    disabled={isTyping}
+                    className="flex-1 px-3 py-1.5 rounded-lg border border-border bg-bg/50 focus:bg-white text-xs focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all text-text"
+                  />
+                  <button
+                    type="submit"
+                    disabled={!customQuery.trim() || isTyping}
+                    className="px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/95 transition-all disabled:opacity-50"
+                  >
+                    Send
+                  </button>
+                </form>
               </div>
             </div>
 

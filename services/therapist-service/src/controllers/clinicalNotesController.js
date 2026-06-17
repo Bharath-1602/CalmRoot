@@ -69,7 +69,12 @@ exports.uploadNotes = async (req, res) => {
     };
 
     const result = await uploadClinicalNotes(data);
-    res.json({ success: true, message: 'Clinical notes uploaded successfully.', data: result });
+    
+    // Fetch and return the fully wrapped note to ensure frontend cache is perfectly in sync
+    const SessionNote = require('../models/SessionNote');
+    const note = await SessionNote.findOne({ sessionId });
+
+    res.json({ success: true, message: 'Clinical notes uploaded successfully.', data: note });
   } catch (error) {
     console.error('Upload notes error:', error);
     res.status(500).json({ success: false, message: 'Server error.' });

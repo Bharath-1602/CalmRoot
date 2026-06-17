@@ -19,7 +19,8 @@ function wrapNote(item) {
     userId: item.userId,
     presentingIssues: item.presentingIssues || [],
     sessionSummary: item.sessionSummary || '',
-    observations: item.observations || '',
+    observations: item.observations || item.sessionObservations || '',
+    sessionObservations: item.sessionObservations || item.observations || '',
     interventionsUsed: item.interventionsUsed || [],
     homeworkAssigned: item.homeworkAssigned || '',
     nextSessionFocus: item.nextSessionFocus || '',
@@ -45,7 +46,7 @@ const SessionNote = {
           }
         };
         const data = await ddbDocClient.send(new GetCommand(params));
-        if (data.Item && data.Item.presentingIssues !== undefined) {
+        if (data.Item && (data.Item.presentingIssues !== undefined || data.Item.clinicalNotesS3Key !== undefined)) {
           return wrapNote(data.Item);
         }
         return null;
@@ -85,9 +86,9 @@ const SessionNote = {
 
       // Merge note fields into the session
       const noteFields = [
-        'presentingIssues', 'sessionSummary', 'observations',
+        'presentingIssues', 'sessionSummary', 'observations', 'sessionObservations',
         'interventionsUsed', 'homeworkAssigned', 'nextSessionFocus',
-        'riskAssessment', 'therapistId', 'userId'
+        'riskAssessment', 'therapistId', 'userId', 'clinicalNotesS3Key', 'clinicalNotesPdfKey'
       ];
       const now = new Date().toISOString();
       for (const field of noteFields) {
