@@ -3,10 +3,20 @@ import { useAuth } from '../../context/AuthContext';
 import LoadingSpinner from './LoadingSpinner';
 
 const ProtectedRoute = ({ allowedRoles }) => {
-  const { user, token, isLoading } = useAuth();
-  const hasStoredToken = !!localStorage.getItem('token');
+  const { user: contextUser, token: contextToken, isLoading } = useAuth();
+  
+  const token = contextToken || localStorage.getItem('token');
+  const storedUser = localStorage.getItem('user');
+  let user = contextUser;
+  if (!user && storedUser) {
+    try {
+      user = JSON.parse(storedUser);
+    } catch (e) {
+      user = null;
+    }
+  }
 
-  if (isLoading || (hasStoredToken && (!token || !user))) {
+  if (isLoading) {
     return <LoadingSpinner fullScreen />;
   }
 

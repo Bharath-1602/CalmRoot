@@ -175,11 +175,44 @@ Recommended therapist: ${userContext.recommendedTherapist || 'not set'}]` : '';
 
   const systemWithContext = SAGE_SYSTEM_PROMPT + contextNote;
 
-  // Convert message history to Nova format
-  const formattedMessages = messages.map(msg => ({
-    role: msg.role,
-    content: [{ text: msg.content }]
-  }));
+  // Filter and format messages for Bedrock Converse API:
+  // 1. Must start with a 'user' message.
+  // 2. Roles must alternate between 'user' and 'assistant'.
+  // 3. Must not have empty content.
+  const formattedMessages = [];
+  for (const msg of messages) {
+    if (!msg.content || typeof msg.content !== 'string' || msg.content.trim() === '') {
+      continue;
+    }
+    const role = msg.role === 'user' ? 'user' : 'assistant';
+    
+    if (formattedMessages.length === 0) {
+      if (role !== 'user') {
+        // Skip leading non-user message
+        continue;
+      }
+    } else {
+      // Alternate check: if same role, merge content
+      const lastMsg = formattedMessages[formattedMessages.length - 1];
+      if (lastMsg.role === role) {
+        lastMsg.content[0].text += '\n' + msg.content.trim();
+        continue;
+      }
+    }
+    
+    formattedMessages.push({
+      role: role,
+      content: [{ text: msg.content.trim() }]
+    });
+  }
+
+  // Ensure there is at least one message to avoid API error
+  if (formattedMessages.length === 0) {
+    formattedMessages.push({
+      role: 'user',
+      content: [{ text: 'Hello' }]
+    });
+  }
 
   try {
     const command = new ConverseCommand({
@@ -200,8 +233,8 @@ Recommended therapist: ${userContext.recommendedTherapist || 'not set'}]` : '';
   } catch (error) {
     console.error('Nova chat failed, using Titan:', error);
     try {
-      const conversation = messages
-        .map(m => `${m.role === 'user' ? 'Human' : 'Assistant'}: ${m.content}`)
+      const conversation = formattedMessages
+        .map(m => `${m.role === 'user' ? 'Human' : 'Assistant'}: ${m.content[0].text}`)
         .join('\n');
       const prompt = `${systemWithContext}\n\n${conversation}\nAssistant:`;
       const response = await callAmazonTitan(prompt);
