@@ -77,6 +77,20 @@ const AdminDashboard = () => {
     setBotMessages(prev => [...prev, { role: 'user', content: text }]);
 
     if (
+      (query.includes('no') && query.includes('appointment')) ||
+      (query.includes('without') && query.includes('appointment')) ||
+      (query.includes('no') && query.includes('session')) ||
+      (query.includes('without') && query.includes('session')) ||
+      query.includes('inactive')
+    ) {
+      const activeIds = (stats?.revenueByTherapist || []).map(r => r.therapistId);
+      const inactive = therapists.filter(t => !activeIds.includes(t._id));
+      if (inactive.length > 0) {
+        reply = `The following therapists have no completed appointments recorded this month: ${inactive.map(t => t.name).join(', ')}.`;
+      } else {
+        reply = "All registered therapists have completed at least one appointment this month!";
+      }
+    } else if (
       query.includes('top') || 
       query.includes('best') || 
       query.includes('highest') || 
@@ -115,11 +129,7 @@ const AdminDashboard = () => {
       const pending = therapists.filter(t => !t.therapistProfile?.isVerified).length;
       reply = `We currently have ${stats?.totalSessions || 0} total sessions. There are ${therapists.length} registered therapists, with ${pending} awaiting verification. Completed sessions this month: ${stats?.completedThisMonth || 0}.`;
     } else if (
-      query.includes('hi') || 
-      query.includes('hello') || 
-      query.includes('hey') || 
-      query.includes('help') || 
-      query.includes('assistant')
+      /\b(hi|hello|hey|help|assistant)\b/i.test(query)
     ) {
       reply = `Hello! I am your CalmRoot Platform Assistant. Ask me about monthly revenue, top earners, or platform status. You can type your question or use the quick buttons below.`;
     } else {
