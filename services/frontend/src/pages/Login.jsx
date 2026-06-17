@@ -25,9 +25,9 @@ const Login = () => {
     setIsLoading(false);
 
     if (result.success) {
-      if (result.role === 'admin') navigate('/admin');
-      else if (result.role === 'therapist') navigate('/therapist/dashboard');
-      else navigate('/dashboard');
+      if (result.role === 'admin') window.location.href = '/admin';
+      else if (result.role === 'therapist') window.location.href = '/therapist/dashboard';
+      else window.location.href = '/dashboard';
     } else {
       setError(result.message);
     }
