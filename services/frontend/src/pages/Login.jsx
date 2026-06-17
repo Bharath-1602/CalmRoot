@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -12,6 +12,9 @@ const Login = () => {
   
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const showRegistrationSuccess = location.state?.registered;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,6 +85,13 @@ const Login = () => {
             <h2 className="text-3xl font-bold text-accent mb-2">Sign In</h2>
             <p className="text-muted">Enter your credentials to continue</p>
           </div>
+
+          {showRegistrationSuccess && (
+            <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-xl flex items-start gap-3 text-green-600 dark:text-green-400 text-sm font-medium">
+              <span className="text-lg leading-none mt-0.5">✓</span>
+              <p>Registration successful! Please sign in with your credentials.</p>
+            </div>
+          )}
 
           {error && (
             <div className="mb-6 p-4 bg-danger/10 border border-danger/20 rounded-xl flex items-start gap-3 text-danger text-sm font-medium">

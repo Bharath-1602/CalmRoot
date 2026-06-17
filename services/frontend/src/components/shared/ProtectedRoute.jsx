@@ -4,8 +4,11 @@ import LoadingSpinner from './LoadingSpinner';
 
 const ProtectedRoute = ({ allowedRoles }) => {
   const { user, token, isLoading } = useAuth();
+  const hasStoredToken = !!localStorage.getItem('token');
 
-  if (isLoading) return <LoadingSpinner fullScreen />;
+  if (isLoading || (hasStoredToken && (!token || !user))) {
+    return <LoadingSpinner fullScreen />;
+  }
 
   if (!token || !user) {
     return <Navigate to="/login" replace />;

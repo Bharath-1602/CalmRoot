@@ -3,7 +3,7 @@ const router = express.Router();
 const { ddbDocClient } = require('../config/dynamodb-client');
 const { GetCommand, PutCommand, QueryCommand } = require('@aws-sdk/lib-dynamodb');
 const { authenticate } = require('../middleware/auth.middleware');
-const { analyzeWellness, getChatResponse, getTherapistRecommendation } = require('../utils/bedrockAI');
+const { analyzeWellness, getChatResponse, getTherapistRecommendation, analyzeReport } = require('../utils/bedrockAI');
 const { evaluateAndEscalate } = require('../utils/riskEngine');
 const User = require('../models/User');
 
@@ -89,22 +89,20 @@ router.post('/analyze', authenticate, async (req, res) => {
 
     // Evaluate risk and potentially escalate
     let escalationResult = { escalated: false };
-    if (analysis.requiresEscalation) {
-      escalationResult = await evaluateAndEscalate(
-        userId,
-        analysis,
-        userProfile,
-        recentAnalyses
-      );
+    escalationResult = await evaluateAndEscalate(
+      userId,
+      analysisItem, // Pass the full analysisItem containing scores
+      userProfile,
+      recentAnalyses
+    );
 
-      // Update escalation status if sent
-      if (escalationResult.escalated) {
-        analysisItem.escalated = true;
-        await ddbDocClient.send(new PutCommand({
-          TableName: USERS_TABLE,
-          Item: analysisItem
-        }));
-      }
+    // Update escalation status if sent
+    if (escalationResult.escalated) {
+      analysisItem.escalated = true;
+      await ddbDocClient.send(new PutCommand({
+        TableName: USERS_TABLE,
+        Item: analysisItem
+      }));
     }
 
     res.json({
@@ -143,6 +141,36 @@ router.post('/chat', authenticate, async (req, res) => {
   } catch (error) {
     console.error('Chat error:', error);
     res.status(500).json({ success: false, message: 'Chat failed.' });
+  }
+});
+
+// GET /api/wellness/bedrock-status
+// Test Bedrock model permissions and connection
+router.get('/bedrock-status', authenticate, async (req, res) => {
+  try {
+    const { testBedrockConnection } = require('../utils/bedrockAI');
+    const result = await testBedrockConnection();
+    res.json(result);
+  } catch (error) {
+    console.error('Bedrock status diagnostic error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// POST /api/wellness/analyze-report
+// RAG analysis on uploaded clinical PDF report
+router.post('/analyze-report', authenticate, async (req, res) => {
+  try {
+    const { reportText, question } = req.body;
+    if (!reportText || !question) {
+      return res.status(400).json({ success: false, message: 'Report text and question are required.' });
+    }
+
+    const result = await analyzeReport(reportText, question);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    console.error('Report analysis error:', error);
+    res.status(500).json({ success: false, message: 'Report analysis failed.' });
   }
 });
 

@@ -1,10 +1,20 @@
-const { SESClient, SendEmailCommand } = require('@aws-sdk/client-ses');
+const nodemailer = require('nodemailer');
 
-const sesClient = new SESClient({
-  region: process.env.AWS_REGION || 'us-east-1'
+const SMTP_HOST = process.env.SMTP_HOST || 'smtp.gmail.com';
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587');
+const SMTP_USER = process.env.SMTP_USER || 'your-email@gmail.com';
+const SMTP_PASS = process.env.SMTP_PASS || 'YOUR_GMAIL_APP_PASSWORD';
+const SMTP_FROM = process.env.SMTP_FROM || 'your-email@gmail.com';
+
+const transporter = nodemailer.createTransport({
+  host: SMTP_HOST,
+  port: SMTP_PORT,
+  secure: SMTP_PORT === 465, // true for 465, false for 587
+  auth: {
+    user: SMTP_USER,
+    pass: SMTP_PASS
+  }
 });
-
-const SENDER_EMAIL = process.env.SES_SENDER_EMAIL || 'noreply@calmroot.com';
 
 const sendEmergencyAlert = async ({
   contactName,
@@ -109,23 +119,17 @@ The CalmRoot Team
 `;
 
   try {
-    await sesClient.send(new SendEmailCommand({
-      Source: SENDER_EMAIL,
-      Destination: {
-        ToAddresses: [contactEmail]
-      },
-      Message: {
-        Subject: { Data: subject, Charset: 'UTF-8' },
-        Body: {
-          Html: { Data: htmlBody, Charset: 'UTF-8' },
-          Text: { Data: textBody, Charset: 'UTF-8' }
-        }
-      }
-    }));
-    console.log(`✅ Emergency alert sent to ${contactEmail}`);
+    const info = await transporter.sendMail({
+      from: `"${SMTP_FROM}" <${SMTP_USER}>`,
+      to: contactEmail,
+      subject: subject,
+      text: textBody,
+      html: htmlBody
+    });
+    console.log(`✅ Emergency alert sent via SMTP to ${contactEmail}. MessageId: ${info.messageId}`);
     return { success: true };
   } catch (error) {
-    console.error('SES send failed:', error);
+    console.error('SMTP send failed:', error);
     return { success: false, error: error.message };
   }
 };

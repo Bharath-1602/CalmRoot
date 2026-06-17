@@ -198,7 +198,7 @@ Recommended therapist: ${userContext.recommendedTherapist || 'not set'}]` : '';
       model: 'amazon-nova-lite'
     };
   } catch (error) {
-    console.log('Nova chat failed, using Titan:', error.message);
+    console.error('Nova chat failed, using Titan:', error);
     try {
       const conversation = messages
         .map(m => `${m.role === 'user' ? 'Human' : 'Assistant'}: ${m.content}`)
@@ -207,8 +207,9 @@ Recommended therapist: ${userContext.recommendedTherapist || 'not set'}]` : '';
       const response = await callAmazonTitan(prompt);
       return { response, model: 'amazon-titan-express' };
     } catch (e) {
+      console.error('Titan chat also failed:', e);
       return {
-        response: "I'm having a moment 🌿 Please try again shortly!",
+        response: `I'm having a moment 🌿 Please try again shortly! (Error: ${error.message || 'Unknown'})`,
         model: 'fallback'
       };
     }
@@ -254,7 +255,7 @@ Return JSON:
     const jsonMatch = response.match(/\{[\s\S]*\}/);
     if (jsonMatch) return JSON.parse(jsonMatch[0]);
   } catch (error) {
-    console.log('Therapist recommendation failed:', error.message);
+    console.error('Therapist recommendation failed:', error);
   }
 
   // Return first verified therapist as fallback
@@ -267,8 +268,85 @@ Return JSON:
   } : null;
 };
 
+// ─── DIAGNOSTIC CONNECTION CHECK ─────────────────────
+
+const testBedrockConnection = async () => {
+  try {
+    console.log('Testing connection to Amazon Nova Lite (amazon.nova-lite-v1:0)...');
+    const response = await callAmazonNova('You are a helpful test bot.', 'Ping');
+    return {
+      success: true,
+      message: 'Nova Lite connection successful.',
+      response
+    };
+  } catch (novaError) {
+    console.error('Diagnostic Nova Lite failed:', novaError);
+    try {
+      console.log('Testing fallback to Amazon Titan Text Express (amazon.titan-text-express-v1)...');
+      const response = await callAmazonTitan('System: Test\nHuman: Ping\nAssistant:');
+      return {
+        success: false,
+        error: `Nova Lite failed: ${novaError.message}. Titan Text Express connection was successful. Check model permissions in AWS console.`,
+        novaError: { message: novaError.message, code: novaError.code, name: novaError.name },
+        titanResponse: response
+      };
+    } catch (titanError) {
+      console.error('Diagnostic Titan failed:', titanError);
+      return {
+        success: false,
+        error: `Both Nova Lite and Titan Express failed. Access issue or incorrect IAM credentials/region.`,
+        novaError: { message: novaError.message, code: novaError.code, name: novaError.name },
+        titanError: { message: titanError.message, code: titanError.code, name: titanError.name }
+      };
+    }
+  }
+};
+
+// ─── RAG REPORT ANALYSIS ──────────────────────────────
+
+const analyzeReport = async (reportText, question) => {
+  const systemPrompt = `You are a medical report analyst for CalmRoot. 
+You are given the clinical notes/report of a therapy session.
+Your task is to summarize the report and answer the user's questions about follow-up actions, coping strategies, or session details.
+Be warm, compassionate, and professional. Avoid diagnosing or prescribing treatments.
+Keep your response under 150 words.`;
+
+  const userMessage = `
+Clinical Report Content:
+"""
+${reportText}
+"""
+
+User Question: "${question}"
+
+Provide a direct, helpful response based on the report content.`;
+
+  try {
+    const response = await callAmazonNova(systemPrompt, userMessage);
+    return {
+      response,
+      model: 'amazon-nova-lite'
+    };
+  } catch (error) {
+    console.error('Nova analyzeReport failed, trying Titan:', error);
+    try {
+      const prompt = `System: ${systemPrompt}\n\nHuman: ${userMessage}\nAssistant:`;
+      const response = await callAmazonTitan(prompt);
+      return {
+        response,
+        model: 'amazon-titan-express'
+      };
+    } catch (e) {
+      console.error('Titan analyzeReport also failed:', e);
+      throw e;
+    }
+  }
+};
+
 module.exports = {
   analyzeWellness,
   getChatResponse,
-  getTherapistRecommendation
+  getTherapistRecommendation,
+  testBedrockConnection,
+  analyzeReport
 };

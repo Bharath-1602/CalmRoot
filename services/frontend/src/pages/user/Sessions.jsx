@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Calendar as CalIcon, Clock, MapPin, Video, Phone, MessageSquare, AlertCircle, RefreshCw } from 'lucide-react';
+import { Calendar as CalIcon, Clock, MapPin, Video, Phone, MessageSquare, AlertCircle, RefreshCw, Sparkles } from 'lucide-react';
 import Sidebar from '../../components/shared/Sidebar';
 import api from '../../lib/axios';
+import { useAuth } from '../../context/AuthContext';
+import ReportAnalyzer from '../../components/shared/ReportAnalyzer';
 
 const CancelModal = ({ session, onClose, onConfirm }) => {
   const [reason, setReason] = useState('');
@@ -65,6 +67,9 @@ const Sessions = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancelTarget, setCancelTarget] = useState(null);
+  const [isAnalyzerOpen, setIsAnalyzerOpen] = useState(false);
+
+  const { user } = useAuth();
 
   const fetchSessions = async () => {
     setLoading(true);
@@ -89,6 +94,20 @@ const Sessions = () => {
       fetchSessions();
     } catch (error) {
       alert(error.response?.data?.message || 'Failed to cancel session');
+    }
+  };
+
+  const handleDownloadReport = async (sessionId, format = 'pdf') => {
+    try {
+      const res = await api.get(`/api/therapist/patient/${user._id}/notes/${sessionId}/download?format=${format}`);
+      if (res.data.success && res.data.data.downloadUrl) {
+        window.open(res.data.data.downloadUrl, '_blank');
+      } else {
+        alert('Failed to get download URL.');
+      }
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.message || 'Failed to download report.');
     }
   };
 
@@ -170,7 +189,7 @@ const Sessions = () => {
                       </div>
                     </div>
 
-                    <div className="w-full md:w-auto flex justify-end gap-3 border-t border-border pt-4 md:border-0 md:pt-0">
+                    <div className="w-full md:w-auto flex flex-wrap justify-end gap-3 border-t border-border pt-4 md:border-0 md:pt-0">
                       {s.status === 'confirmed' && (
                         <button className="px-6 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-sm">
                           Join Call
@@ -183,6 +202,22 @@ const Sessions = () => {
                         >
                           Cancel
                         </button>
+                      )}
+                      {s.status === 'completed' && (s.clinicalNotesPdfKey || s.clinicalNotesS3Key) && (
+                        <>
+                          <button
+                            onClick={() => handleDownloadReport(s._id)}
+                            className="px-4 py-2 bg-primary/10 border border-primary/20 text-primary text-xs font-bold rounded-xl hover:bg-primary/20 transition-all"
+                          >
+                            Download Report
+                          </button>
+                          <button
+                            onClick={() => setIsAnalyzerOpen(true)}
+                            className="px-4 py-2 bg-secondary/10 border border-secondary/20 text-secondary text-xs font-bold rounded-xl hover:bg-secondary/20 transition-all flex items-center gap-1.5"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" /> Analyze Report
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -200,6 +235,10 @@ const Sessions = () => {
           onClose={() => setCancelTarget(null)} 
           onConfirm={handleCancelConfirm} 
         />
+      )}
+
+      {isAnalyzerOpen && (
+        <ReportAnalyzer onClose={() => setIsAnalyzerOpen(false)} />
       )}
     </div>
   );

@@ -2,7 +2,6 @@ const { sendEmergencyAlert } = require('./emailService');
 
 // Risk calculation constants
 const RISK_THRESHOLDS = {
-  ESCALATION_CONSECUTIVE_HIGH: 3,
   ESCALATION_COOLDOWN_HOURS: 48,
   HIGH_RISK_SCORE: 70,
 };
@@ -13,22 +12,33 @@ const evaluateAndEscalate = async (
   userProfile,
   recentAnalyses
 ) => {
-  // Only escalate if AI flagged requiresEscalation and risk score is high
-  if (!analysisResult.requiresEscalation) return { escalated: false, reason: 'AI did not flag escalation' };
-  if (analysisResult.riskScore < RISK_THRESHOLDS.HIGH_RISK_SCORE) return { escalated: false, reason: 'Risk score below threshold' };
-
   const emergencyContact = userProfile.emergencyContact;
   if (!emergencyContact?.email || !emergencyContact?.consentGiven) {
     return { escalated: false, reason: 'No emergency contact or no consent' };
   }
 
-  // Check consecutive high-risk days
-  const consecutiveHigh = countConsecutiveHighRisk(recentAnalyses || []);
-  if (consecutiveHigh < RISK_THRESHOLDS.ESCALATION_CONSECUTIVE_HIGH) {
-    return { escalated: false, reason: `Only ${consecutiveHigh} consecutive high risk days (need ${RISK_THRESHOLDS.ESCALATION_CONSECUTIVE_HIGH})` };
+  // Trigger alert if:
+  // 1. AI flagged requiresEscalation AND riskScore is high
+  // 2. Instant Trigger: Mood score is <= 3 AND either risk level is HIGH or a clinical assessment (PHQ-9 or GAD-7) is severe (score >= 15)
+  const moodScore = analysisResult.moodScore;
+  const isSevereMood = moodScore !== null && moodScore !== undefined && Number(moodScore) <= 3;
+  const isSevereAssessment = 
+    (analysisResult.phq9Score !== null && Number(analysisResult.phq9Score) >= 15) || 
+    (analysisResult.gad7Score !== null && Number(analysisResult.gad7Score) >= 15);
+
+  const aiFlaggedEscalation = analysisResult.requiresEscalation && (analysisResult.riskScore >= RISK_THRESHOLDS.HIGH_RISK_SCORE);
+  const instantTriggerMatched = isSevereMood && (analysisResult.riskLevel === 'HIGH' || isSevereAssessment);
+
+  const shouldEscalate = aiFlaggedEscalation || instantTriggerMatched;
+
+  if (!shouldEscalate) {
+    return { 
+      escalated: false, 
+      reason: `Escalation criteria not met. (AI flag: ${aiFlaggedEscalation}, Instant severe trigger: ${instantTriggerMatched})` 
+    };
   }
 
-  // Check cooldown period
+  // Check cooldown period to prevent spamming
   const lastEscalation = findLastEscalation(recentAnalyses || []);
   if (lastEscalation) {
     const hoursSince = (Date.now() - new Date(lastEscalation).getTime()) / 3600000;
@@ -44,24 +54,15 @@ const evaluateAndEscalate = async (
     userName: userProfile.name,
     userFirstName: userProfile.name.split(' ')[0],
     relationship: emergencyContact.relationship || 'trusted contact',
-    riskLevel: analysisResult.riskLevel,
+    riskLevel: analysisResult.riskLevel || 'HIGH',
   });
 
   return {
     escalated: emailResult.success,
     emailSentTo: emergencyContact.email,
-    consecutiveHighDays: consecutiveHigh,
+    reason: aiFlaggedEscalation ? 'AI detected high risk over threshold' : 'Instant severe mood/assessment trigger matched',
     error: emailResult.error || null,
   };
-};
-
-const countConsecutiveHighRisk = (analyses) => {
-  let count = 0;
-  for (const analysis of analyses) {
-    if (analysis.riskLevel === 'HIGH') count++;
-    else break;
-  }
-  return count;
 };
 
 const findLastEscalation = (analyses) => {

@@ -138,7 +138,7 @@ const TherapistDirectory = () => {
                 <div key={t._id} className="bg-surface rounded-2xl overflow-hidden shadow-sm border border-border flex flex-col hover:-translate-y-1 transition-transform group">
                   <div className="bg-accent p-6 flex items-start gap-4 h-32 relative">
                     <div className="absolute inset-0 opacity-20 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMiIgY3k9IjIiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC44KSIvPjwvc3ZnPg==')]"></div>
-                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-accent text-xl font-black shadow-md border-2 border-surface shrink-0 z-10 relative">
+                    <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center text-accent dark:text-cr-primary-light text-xl font-black shadow-md border-2 border-surface shrink-0 z-10 relative">
                       {t.name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase()}
                     </div>
                     <div className="z-10 mt-1">

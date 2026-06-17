@@ -70,7 +70,7 @@ const BookSessionModal = ({ therapist, onClose }) => {
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-accent/80 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
       <div className="bg-surface w-full max-w-lg rounded-3xl shadow-2xl border border-border flex flex-col max-h-[90vh]">
         
         {/* Header */}
@@ -131,7 +131,7 @@ const BookSessionModal = ({ therapist, onClose }) => {
                       min={today}
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="px-4 py-3 border border-border rounded-xl text-lg font-medium bg-white shadow-sm focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                      className="px-4 py-3 border border-border rounded-xl text-lg font-medium bg-surface text-text shadow-sm focus:ring-2 focus:ring-primary/20 focus:outline-none dark:bg-[#0D1117]"
                     />
                   </div>
                 </div>
@@ -162,7 +162,7 @@ const BookSessionModal = ({ therapist, onClose }) => {
                           className={`py-3 px-2 rounded-xl border text-sm font-bold transition-all ${
                             selectedSlot === slot 
                               ? 'bg-primary border-primary text-white shadow-md scale-[1.02]' 
-                              : 'bg-white border-border text-text hover:border-primary/50 hover:bg-bg'
+                              : 'bg-surface border-border text-text hover:border-primary/50 hover:bg-bg dark:bg-[#161B22] dark:hover:bg-[#30363D]'
                           }`}
                         >
                           {slot}
@@ -204,7 +204,7 @@ const BookSessionModal = ({ therapist, onClose }) => {
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       rows={3}
-                      className="w-full rounded-xl border border-border bg-bg/50 p-4 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+                      className="w-full rounded-xl border border-border bg-bg/50 p-4 focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none text-text dark:bg-[#0D1117] dark:focus:bg-[#161B22]"
                       placeholder="Briefly describe what brings you to therapy today..."
                     />
                   </div>
@@ -230,7 +230,7 @@ const BookSessionModal = ({ therapist, onClose }) => {
             <div className="flex gap-3">
               <button
                 onClick={() => step === 1 ? onClose() : setStep(step - 1)}
-                className="px-6 py-3 rounded-xl font-bold bg-white border border-border text-text hover:bg-surface transition-colors"
+                className="px-6 py-3 rounded-xl font-bold bg-surface border border-border text-text hover:bg-bg transition-colors dark:bg-[#161B22]"
                 disabled={booking}
               >
                 {step === 1 ? 'Cancel' : 'Back'}

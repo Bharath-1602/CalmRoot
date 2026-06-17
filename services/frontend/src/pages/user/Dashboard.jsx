@@ -4,12 +4,36 @@ import { Smile, Brain, Sun, Activity, AlertCircle, Info, Star, TrendingUp, Spark
 import Sidebar from '../../components/shared/Sidebar';
 import api from '../../lib/axios';
 
+const JOKE_POOL = [
+  "Why did the scarecrow win an award? Because he was outstanding in his field, but he still talked it out with his therapist! 🌾",
+  "Why did the bicycle collapse? Because it was two-tired! Remember to take a break. 🚲",
+  "Why don't scientists trust atoms? Because they make up everything! Just like our overthinking minds sometimes do. ⚛️",
+  "How does a neuron say goodbye? 'Keep in touch!' 🧠",
+  "What did the grape do when he got stepped on? He let out a little wine! It is okay to vent. 🍇",
+  "Why was the math book sad? Because it had too many problems. Let's solve yours one step at a time! 📚",
+  "How do you organize a space party? You planet! 🪐",
+  "Why did the computer go to the doctor? Because it had a virus! Even tech needs checkups. 💻",
+  "Why did the cookie go to the hospital? Because it was feeling crummy! 🍪",
+  "Why did the sun go to school? To get a little brighter! ☀️",
+  "Why did the coffee file a police report? It got mugged! ☕",
+  "Why did the tomato turn red? Because it saw the salad dressing! 🍅",
+  "What do you call a sleeping bull? A bulldozer! 🐂",
+  "What did the ocean say to the shore? Nothing, it just waved! 🌊",
+  "What do you call a fake noodle? An imposter! 🍜",
+  "Why did the tree go to the dentist? To get a root canal! 🌳",
+  "What is a tree's favorite subject? Geometry! 📐",
+  "Why did the belt go to prison? Because it held up a pair of pants! 👖",
+  "What did one cell say to his sister cell when she stepped in his toe? Mitosis! 🧬",
+  "Why don't some couples go to the gym? Because some relationships don't work out. But you and your self-care will! 💪"
+];
+
 const Dashboard = () => {
   const [summary, setSummary] = useState(null);
   const [insights, setInsights] = useState([]);
   const [upcoming, setUpcoming] = useState(null);
   const [todayMood, setTodayMood] = useState(null);
   const [wellnessAnalysis, setWellnessAnalysis] = useState(null);
+  const [displayJoke, setDisplayJoke] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -38,6 +62,16 @@ const Dashboard = () => {
     fetchData();
   }, []);
 
+  // Update randomized joke based on latest analysis or fallback
+  useEffect(() => {
+    const pool = [...JOKE_POOL];
+    if (wellnessAnalysis?.joke && !pool.includes(wellnessAnalysis.joke)) {
+      pool.push(wellnessAnalysis.joke);
+    }
+    const randIdx = Math.floor(Math.random() * pool.length);
+    setDisplayJoke(pool[randIdx]);
+  }, [wellnessAnalysis]);
+
   const formatDate = (isoString) => {
     if (!isoString) return '';
     const diffDays = Math.floor((new Date() - new Date(isoString)) / (1000 * 60 * 60 * 24));
@@ -56,15 +90,15 @@ const Dashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-bg flex pl-64">
+      <div className="min-h-screen bg-bg flex pl-64 text-text">
         <Sidebar />
         <main className="flex-1 p-8 grid gap-8 animate-pulse">
-          <div className="h-8 w-64 bg-slate-200 rounded"></div>
-          <div className="h-32 bg-slate-200 rounded-xl"></div>
+          <div className="h-8 w-64 bg-surface rounded"></div>
+          <div className="h-32 bg-surface rounded-xl"></div>
           <div className="grid grid-cols-3 gap-6">
-            <div className="h-48 bg-slate-200 rounded-xl"></div>
-            <div className="h-48 bg-slate-200 rounded-xl"></div>
-            <div className="h-48 bg-slate-200 rounded-xl"></div>
+            <div className="h-48 bg-surface rounded-xl"></div>
+            <div className="h-48 bg-surface rounded-xl"></div>
+            <div className="h-48 bg-surface rounded-xl"></div>
           </div>
         </main>
       </div>
@@ -115,13 +149,13 @@ const Dashboard = () => {
             <div className="bg-success/10 rounded-2xl p-6 border border-success/20 flex flex-col md:flex-row items-center justify-between shadow-sm relative overflow-hidden">
               <div className="absolute top-0 left-0 w-1.5 h-full bg-success"></div>
               <div className="flex items-center gap-4">
-                <div className="text-5xl bg-white p-3 rounded-2xl shadow-sm border border-success/10">{todayMood.moodEmoji}</div>
+                <div className="text-5xl bg-surface p-3 rounded-2xl shadow-sm border border-success/10">{todayMood.moodEmoji}</div>
                 <div>
                   <h3 className="text-lg font-bold text-success-dark mb-1">Mood logged today!</h3>
                   <p className="text-success text-sm font-medium">Score: {todayMood.moodScore} / 10</p>
                 </div>
               </div>
-              <Link to="/mood" className="text-success font-semibold px-5 py-2.5 bg-white/60 hover:bg-white rounded-xl transition-colors border border-success/20">
+              <Link to="/mood" className="text-success font-semibold px-5 py-2.5 bg-surface/60 hover:bg-surface border border-success/20 rounded-xl transition-colors">
                 Update log →
               </Link>
             </div>
@@ -139,7 +173,7 @@ const Dashboard = () => {
                 <div>
                   <span className="text-[10px] uppercase font-mono tracking-wider text-cr-primary font-bold">Sage's Daily Uplift 🌿</span>
                   <div className="mt-4 p-4 rounded-xl bg-cr-surface-alt dark:bg-[#161B22] text-sm italic relative border border-border/50 text-text">
-                    "{wellnessAnalysis?.joke || 'Why did the brain go to therapy? Because it had too many thoughts! 🧠'}"
+                    "{displayJoke || 'Why did the brain go to therapy? Because it had too many thoughts! 🧠'}"
                   </div>
                 </div>
                 <div className="text-xs text-muted mt-4 font-medium">
@@ -245,7 +279,7 @@ const Dashboard = () => {
                     };
                     return (
                       <div key={idx} className={`rounded-xl p-5 border ${styles[insight.type]} flex gap-4 items-start`}>
-                        <div className={`p-2 rounded-full bg-white/50 border border-current shrink-0 mt-0.5`}>
+                        <div className={`p-2 rounded-full bg-surface/50 border border-current shrink-0 mt-0.5`}>
                           <Icon className="w-5 h-5" />
                         </div>
                         <div className="flex-1">
@@ -344,7 +378,7 @@ const AssessmentCard = ({ title, type, icon: Icon, data, formatDate, colors }) =
         </div>
       ) : (
         <div className="text-center py-4">
-          <span className="px-3 py-1 bg-slate-100 text-slate-500 rounded-full text-xs font-bold border border-slate-200">
+          <span className="px-3 py-1 bg-bg text-muted rounded-full text-xs font-bold border border-border">
             Not taken yet
           </span>
         </div>

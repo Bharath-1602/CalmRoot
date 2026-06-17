@@ -145,19 +145,65 @@ exports.getClientInfo = async (req, res) => {
 
 exports.getAdminStats = async (req, res) => {
   try {
-    const totalSessions = await Session.countDocuments();
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-    
-    // Get all sessions and filter in JS for completed this month and pending
     const allSessions = await Session.find({});
-    const completedThisMonth = allSessions.filter(s => 
-      s.status === 'completed' && s.updatedAt && new Date(s.updatedAt) >= new Date(startOfMonth)
-    ).length;
-    const pendingCount = allSessions.filter(s => s.status === 'pending').length;
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    res.json({ success: true, data: { totalSessions, completedThisMonth, pendingCount } });
+    let totalRevenue = 0;
+    let monthlyRevenue = 0;
+    let completedThisMonth = 0;
+    let pendingCount = 0;
+    
+    const therapistMap = {};
+
+    for (const s of allSessions) {
+      if (s.status === 'pending') {
+        pendingCount++;
+      } else if (s.status === 'completed') {
+        const fee = Number(s.sessionFee) || 0;
+        totalRevenue += fee;
+        
+        // Group by therapist
+        const tid = s.therapistId || 'unknown';
+        const tname = s.therapistName || 'Unknown Therapist';
+        if (!therapistMap[tid]) {
+          therapistMap[tid] = {
+            therapistId: tid,
+            therapistName: tname,
+            revenue: 0,
+            sessionCount: 0
+          };
+        }
+        therapistMap[tid].revenue += fee;
+        therapistMap[tid].sessionCount += 1;
+
+        // Check if completed this month
+        if (s.updatedAt) {
+          const updateDate = new Date(s.updatedAt);
+          if (updateDate >= startOfMonth) {
+            completedThisMonth++;
+            monthlyRevenue += fee;
+          }
+        }
+      }
+    }
+
+    const revenueByTherapist = Object.values(therapistMap).sort((a, b) => b.revenue - a.revenue);
+    const totalSessions = allSessions.length;
+
+    res.json({
+      success: true,
+      data: {
+        totalSessions,
+        completedThisMonth,
+        pendingCount,
+        totalRevenue,
+        monthlyRevenue,
+        revenueByTherapist
+      }
+    });
   } catch (error) {
+    console.error('getAdminStats error:', error);
     res.status(500).json({ success: false, message: 'Server error.' });
   }
 };

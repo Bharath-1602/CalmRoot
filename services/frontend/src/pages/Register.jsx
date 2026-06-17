@@ -98,7 +98,7 @@ const Register = () => {
     setIsLoading(false);
 
     if (result.success) {
-      navigate(result.role === 'therapist' ? '/therapist/dashboard' : '/dashboard');
+      navigate('/login', { state: { registered: true } });
     } else {
       setError(result.message);
     }
