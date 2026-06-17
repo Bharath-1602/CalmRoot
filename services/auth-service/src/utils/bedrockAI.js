@@ -176,7 +176,13 @@ Risk level: ${userContext.riskLevel || 'unknown'},
 Upcoming session: ${userContext.hasUpcomingSession ? 'Yes' : 'No'},
 Recommended therapist: ${userContext.recommendedTherapist || 'not set'}]` : '';
 
-  const systemWithContext = SAGE_SYSTEM_PROMPT + contextNote;
+  let therapistNote = '';
+  if (userContext.therapists && userContext.therapists.length > 0) {
+    therapistNote = `\n\nVerified Therapists available on CalmRoot:
+${userContext.therapists.map(t => `- ${t.name} (Specializations: ${t.specializations.join(', ')}, Experience: ${t.experienceYears} years, Session Price: ₹${t.sessionPrice})`).join('\n')}`;
+  }
+
+  const systemWithContext = SAGE_SYSTEM_PROMPT + contextNote + therapistNote;
 
   // Filter and format messages for Bedrock Converse API:
   // 1. Must start with a 'user' message.

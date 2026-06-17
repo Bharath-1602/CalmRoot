@@ -129,7 +129,26 @@ router.post('/chat', authenticate, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Messages array is required.' });
     }
 
-    const result = await getChatResponse(messages, userContext || {});
+    // Fetch verified therapists to pass as context
+    let therapists = [];
+    try {
+      therapists = await User.find({ role: 'therapist', 'therapistProfile.isVerified': true })
+        .select('name therapistProfile');
+    } catch (dbErr) {
+      console.error('Error fetching therapists for chatbot context:', dbErr.message);
+    }
+
+    const extendedContext = {
+      ...(userContext || {}),
+      therapists: therapists.map(t => ({
+        name: t.name,
+        specializations: t.therapistProfile?.specializations || [],
+        experienceYears: t.therapistProfile?.experienceYears || 0,
+        sessionPrice: t.therapistProfile?.sessionPrice || 0
+      }))
+    };
+
+    const result = await getChatResponse(messages, extendedContext);
 
     res.json({
       success: true,
