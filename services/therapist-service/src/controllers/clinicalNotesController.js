@@ -91,10 +91,10 @@ exports.listNotes = async (req, res) => {
     }
 
     if (req.user.role === 'therapist') {
-      // Check assignment
-      const assignment = await TherapistPatient.getTherapistForPatient(patientId);
-      if (!assignment || assignment.therapistId !== req.user.sub) {
-        return res.status(403).json({ success: false, message: 'Not authorized. You are not the assigned therapist.' });
+      // Verify therapist has at least one session with this patient
+      const sessions = await Session.find({ userId: patientId, therapistId: req.user.sub });
+      if (!sessions || sessions.length === 0) {
+        return res.status(403).json({ success: false, message: 'Not authorized. You are not the therapist for this patient.' });
       }
     }
 
@@ -119,14 +119,6 @@ exports.downloadNotes = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Not authorized.' });
     }
 
-    if (req.user.role === 'therapist') {
-      // Check assignment and consent status
-      const assignment = await TherapistPatient.getTherapistForPatient(patientId);
-      if (!assignment || assignment.therapistId !== req.user.sub) {
-        return res.status(403).json({ success: false, message: 'Not authorized. You are not the assigned therapist.' });
-      }
-    }
-
     const session = await Session.findById(sessionId);
     if (!session) {
       return res.status(404).json({ success: false, message: 'Session not found.' });
@@ -134,6 +126,13 @@ exports.downloadNotes = async (req, res) => {
 
     if (session.userId !== patientId) {
       return res.status(400).json({ success: false, message: 'Session patient ID mismatch.' });
+    }
+
+    if (req.user.role === 'therapist') {
+      // Check if this therapist owns the session
+      if (session.therapistId !== req.user.sub) {
+        return res.status(403).json({ success: false, message: 'Not authorized. You are not the therapist for this session.' });
+      }
     }
 
     let s3Key = format === 'txt' ? session.clinicalNotesS3Key : session.clinicalNotesPdfKey;

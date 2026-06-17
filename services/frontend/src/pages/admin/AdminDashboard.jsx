@@ -77,6 +77,21 @@ const AdminDashboard = () => {
     setBotMessages(prev => [...prev, { role: 'user', content: text }]);
 
     if (
+      query.includes('top') || 
+      query.includes('best') || 
+      query.includes('highest') || 
+      query.includes('performer') || 
+      query.includes('sharma') || 
+      query.includes('priya') ||
+      query.includes('earner')
+    ) {
+      const top = stats?.revenueByTherapist?.[0];
+      if (top) {
+        reply = `Our top performing therapist is ${top.therapistName}, who has generated ₹${top.revenue} from ${top.sessionCount} completed sessions.`;
+      } else {
+        reply = "We don't have any therapist earnings recorded yet.";
+      }
+    } else if (
       query.includes('revenue') || 
       query.includes('earn') || 
       query.includes('money') || 
@@ -86,20 +101,6 @@ const AdminDashboard = () => {
       query.includes('billing')
     ) {
       reply = `This month, CalmRoot has generated ₹${stats?.monthlyRevenue || 0} in revenue. All-time platform revenue stands at ₹${stats?.totalRevenue || 0} across ${stats?.totalSessions || 0} total sessions.`;
-    } else if (
-      query.includes('top') || 
-      query.includes('best') || 
-      query.includes('highest') || 
-      query.includes('performer') || 
-      query.includes('sharma') || 
-      query.includes('priya')
-    ) {
-      const top = stats?.revenueByTherapist?.[0];
-      if (top) {
-        reply = `Our top performing therapist is ${top.therapistName}, who has generated ₹${top.revenue} from ${top.sessionCount} completed sessions.`;
-      } else {
-        reply = "We don't have any therapist earnings recorded yet.";
-      }
     } else if (
       query.includes('trend') || 
       query.includes('platform') || 
