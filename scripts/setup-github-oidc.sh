@@ -26,7 +26,7 @@ else
 fi
 
 # 2. Create GitHub Actions IAM trust policy JSON file
-TRUST_POLICY_FILE=$(mktemp)
+TRUST_POLICY_FILE="trust-policy-temp.json"
 cat <<EOF > "$TRUST_POLICY_FILE"
 {
   "Version": "2012-10-17",
