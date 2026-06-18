@@ -1,10 +1,10 @@
 output "clinical_notes_bucket_name" {
-  value       = data.aws_s3_bucket.clinical_notes.id
+  value       = aws_s3_bucket.clinical_notes.id
   description = "Name of the clinical notes bucket"
 }
 
 output "clinical_notes_bucket_arn" {
-  value       = data.aws_s3_bucket.clinical_notes.arn
+  value       = aws_s3_bucket.clinical_notes.arn
   description = "ARN of the clinical notes bucket"
 }
 

@@ -1,0 +1,273 @@
+name: "CalmRoot — Assessment Service CI/CD"
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - 'services/assessment-service/**'
+      - 'helm/calmroot/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'services/assessment-service/**'
+
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
+env:
+  SERVICE_NAME: assessment-service
+  SERVICE_PATH: services/assessment-service
+  ECR_REGISTRY: 006805625766.dkr.ecr.us-east-1.amazonaws.com
+  ECR_REPO: calmroot/assessment-service
+  AWS_REGION: us-east-1
+  SONAR_PROJECT_KEY: calmroot_assessment_service
+
+jobs:
+  sonarcloud:
+    name: "SonarCloud Analysis"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          projectBaseDir: services/assessment-service
+          args: |
+            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Dsonar.sources=src
+            -Dsonar.exclusions=node_modules/**
+
+      - name: Send Failure Notification Email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "❌ SonarCloud Failed: CalmRoot Assessment Service"
+          to: ${{ secrets.ALERT_EMAIL }}
+          from: CalmRoot CI/CD <${{ secrets.SMTP_USERNAME }}>
+          body: |
+            The SonarCloud scan job failed for the assessment-service.
+            Commit: ${{ github.sha }}
+            Branch: ${{ github.ref_name }}
+            Author: ${{ github.actor }}
+            Check logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      - name: Send Success Notification Email
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "✅ SonarCloud Passed: CalmRoot Assessment Service"
+          to: ${{ secrets.ALERT_EMAIL }}
+          from: CalmRoot CI/CD <${{ secrets.SMTP_USERNAME }}>
+          body: |
+            The SonarCloud scan job completed successfully for the assessment-service.
+            Commit: ${{ github.sha }}
+            Branch: ${{ github.ref_name }}
+
+  build-and-scan:
+    name: "Build and Security Scan"
+    needs: sonarcloud
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: |
+          cd services/assessment-service
+          npm ci
+
+      - name: Snyk Security Scan
+        uses: snyk/actions/node@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          command: test
+          args: --severity-threshold=high --file=services/assessment-service/package.json
+        continue-on-error: true
+
+      - name: Send Failure Notification Email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "❌ Build/Scan Failed: CalmRoot Assessment Service"
+          to: ${{ secrets.ALERT_EMAIL }}
+          from: CalmRoot CI/CD <${{ secrets.SMTP_USERNAME }}>
+          body: |
+            The build or Snyk security scan job failed for the assessment-service.
+            Commit: ${{ github.sha }}
+            Branch: ${{ github.ref_name }}
+            Author: ${{ github.actor }}
+            Check logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  docker-build-push:
+    name: "Docker Build and Push to ECR"
+    needs: build-and-scan
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{ steps.set_tag.outputs.image_tag }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set Image Tag
+        id: set_tag
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-8)
+          ENV_NAME=${{ github.ref_name == 'main' && 'prod' || 'dev' }}
+          IMAGE_TAG="${ENV_NAME}-${SHORT_SHA}"
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+          echo "Image tag: $IMAGE_TAG"
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image
+        run: |
+          docker buildx build \
+            --platform linux/amd64 \
+            -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ steps.set_tag.outputs.image_tag }} \
+            -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:latest \
+            --push \
+            services/assessment-service
+
+      - name: Send ECR Push Success Email
+        if: success()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "🐳 ECR Image Pushed: CalmRoot Assessment Service"
+          to: ${{ secrets.ALERT_EMAIL }}
+          from: CalmRoot CI/CD <${{ secrets.SMTP_USERNAME }}>
+          body: |
+            Successfully pushed assessment-service image to ECR.
+            Image Tag: ${{ steps.set_tag.outputs.image_tag }}
+            Registry: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}
+
+      - name: Send ECR Push Failure Email
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "❌ ECR Push Failed: CalmRoot Assessment Service"
+          to: ${{ secrets.ALERT_EMAIL }}
+          from: CalmRoot CI/CD <${{ secrets.SMTP_USERNAME }}>
+          body: |
+            Docker build & ECR push job failed for the assessment-service.
+            Commit: ${{ github.sha }}
+            Branch: ${{ github.ref_name }}
+            Check logs: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+  approval-gate:
+    name: "Approval Gate (main only)"
+    needs: docker-build-push
+    if: github.ref_name == 'main' && github.event_name == 'push'
+    environment: production
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Approval Request Email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "🚀 Action Required: CalmRoot Assessment Service Deploy Approval Needed"
+          to: ${{ secrets.ALERT_EMAIL }}
+          from: CalmRoot CI/CD <${{ secrets.SMTP_USERNAME }}>
+          body: |
+            Assessment Service image is ready for production deployment.
+            Image tag: ${{ needs.docker-build-push.outputs.image_tag }}
+            
+            This pipeline is waiting for your manual approval in GitHub Actions environment.
+            Approve at: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      - name: Wait for Approval
+        run: echo "Deployment approved"
+
+  update-helm-values:
+    name: "Update Helm Values (GitOps)"
+    needs: [docker-build-push, approval-gate]
+    if: |
+      always() &&
+      needs.docker-build-push.result == 'success' &&
+      (
+        github.ref_name == 'develop' ||
+        (github.ref_name == 'main' && needs.approval-gate.result == 'success')
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code with PAT
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.MANIFEST_REPO_PAT }}
+
+      - name: Update Assessment Service Image Tag in Helm values
+        run: |
+          sed -i "s|tag: .*  # assessment-service|tag: ${{ needs.docker-build-push.outputs.image_tag }}  # assessment-service|g" helm/calmroot/values.yaml
+
+      - name: Commit and Push Image Tag
+        run: |
+          git config user.name "CalmRoot CI Bot"
+          git config user.email "ci@calmroot.com"
+          git add helm/calmroot/values.yaml
+          git commit -m "ci: update assessment-service image tag to ${{ needs.docker-build-push.outputs.image_tag }} [skip ci]"
+          git push
+
+      - name: Send Helm Update Success Email
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          subject: "⛵ Helm Values Updated: CalmRoot Assessment Service"
+          to: ${{ secrets.ALERT_EMAIL }}
+          from: CalmRoot CI/CD <${{ secrets.SMTP_USERNAME }}>
+          body: |
+            The Helm values file has been updated with the new image tag.
+            ArgoCD will automatically detect this change and sync the deployment.
+            Image Tag: ${{ needs.docker-build-push.outputs.image_tag }}
+            Commit: ${{ github.sha }}

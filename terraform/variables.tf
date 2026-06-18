@@ -37,7 +37,7 @@ variable "github_repo" {
 variable "alert_email" {
   type        = string
   description = "Email address for CloudWatch metric alert notifications"
-  default     = "ops-notifications@calmroot.com"
+  default     = "bharath70135@gmail.com"
 }
 
 # --- CloudFront & Domain configurations ---

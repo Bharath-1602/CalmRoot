@@ -1,26 +1,48 @@
 global:
   image:
     registry: 006805625766.dkr.ecr.us-east-1.amazonaws.com
-    tag: latest
     pullPolicy: Always
   namespace: calmroot-prod
+
+frontend:
+  name: frontend
+  replicaCount: 2
+  image:
+    repository: calmroot/frontend
+    tag: latest  # frontend
+  port: 80
+  serviceAccount:
+    name: frontend-sa
+    roleArn: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+  hpa:
+    minReplicas: 2
+    maxReplicas: 4
+    targetCPUUtilizationPercentage: 70
 
 authService:
   name: auth-service
   replicaCount: 2
   image:
     repository: calmroot/auth-service
+    tag: latest  # auth-service
   port: 3001
   serviceAccount:
     name: auth-service-sa
     roleArn: "arn:aws:iam::006805625766:role/calmroot-auth-service-role"
   resources:
     requests:
-      cpu: "200m"
-      memory: "256Mi"
+      cpu: 200m
+      memory: 256Mi
     limits:
-      cpu: "500m"
-      memory: "512Mi"
+      cpu: 500m
+      memory: 512Mi
   hpa:
     minReplicas: 2
     maxReplicas: 6
@@ -40,17 +62,18 @@ assessmentService:
   replicaCount: 2
   image:
     repository: calmroot/assessment-service
+    tag: latest  # assessment-service
   port: 3002
   serviceAccount:
     name: assessment-service-sa
     roleArn: "arn:aws:iam::006805625766:role/calmroot-assessment-service-role"
   resources:
     requests:
-      cpu: "150m"
-      memory: "200Mi"
+      cpu: 150m
+      memory: 200Mi
     limits:
-      cpu: "400m"
-      memory: "400Mi"
+      cpu: 400m
+      memory: 400Mi
   hpa:
     minReplicas: 2
     maxReplicas: 4
@@ -70,17 +93,18 @@ therapistService:
   replicaCount: 2
   image:
     repository: calmroot/therapist-service
+    tag: latest  # therapist-service
   port: 3003
   serviceAccount:
     name: therapist-service-sa
     roleArn: "arn:aws:iam::006805625766:role/calmroot-therapist-service-role"
   resources:
     requests:
-      cpu: "150m"
-      memory: "200Mi"
+      cpu: 150m
+      memory: 200Mi
     limits:
-      cpu: "400m"
-      memory: "400Mi"
+      cpu: 400m
+      memory: 400Mi
   hpa:
     minReplicas: 2
     maxReplicas: 4
@@ -92,31 +116,10 @@ therapistService:
     DYNAMODB_SESSIONS_TABLE: calmroot-sessions
     DYNAMODB_USERS_TABLE: calmroot-users
     DYNAMODB_THERAPIST_PATIENTS_TABLE: calmroot-therapist-patients
-    CLINICAL_NOTES_BUCKET: calmroot-clinical-notes-006805625766
+    CLINICAL_NOTES_BUCKET: calmroot-clinical-notes
     EXPORTS_BUCKET: calmroot-daily-exports
   secrets:
     jwtSecretName: calmroot-jwt-secret
-
-frontend:
-  name: frontend
-  replicaCount: 2
-  image:
-    repository: calmroot/frontend
-  port: 80
-  serviceAccount:
-    name: frontend-sa
-    roleArn: ""
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "128Mi"
-    limits:
-      cpu: "300m"
-      memory: "256Mi"
-  hpa:
-    minReplicas: 2
-    maxReplicas: 4
-    targetCPUUtilizationPercentage: 70
 
 externalSecrets:
   refreshInterval: 1h

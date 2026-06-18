@@ -13,6 +13,11 @@ output "ecr_repository_urls" {
   description = "Map of ECR repository names to URLs"
 }
 
+output "ecr_urls" {
+  value       = module.ecr.repository_urls
+  description = "Alias for Map of ECR repository names to URLs"
+}
+
 output "kms_key_arn" {
   value       = module.security.kms_key_arn
   description = "Master KMS encryption Key ARN"
@@ -34,6 +39,16 @@ output "github_actions_role_arn" {
 }
 
 # --- CloudFront & DNS outputs ---
+output "cloudfront_distribution_id" {
+  value       = module.cloudfront.distribution_id
+  description = "The CloudFront Distribution ID"
+}
+
+output "cloudfront_domain" {
+  value       = module.cloudfront.distribution_domain_name
+  description = "CloudFront Distribution Domain Name"
+}
+
 output "cloudfront_domain_name" {
   value       = module.cloudfront.distribution_domain_name
   description = "CloudFront Distribution Domain Name"
@@ -49,24 +64,48 @@ output "route53_nameservers" {
   description = "Name servers associated with the new hosted zone"
 }
 
+# --- IRSA Roles outputs ---
+output "auth_service_role_arn" {
+  value       = module.eks.auth_service_role_arn
+  description = "IAM Role ARN for auth-service IRSA"
+}
+
+output "assessment_service_role_arn" {
+  value       = module.eks.assessment_service_role_arn
+  description = "IAM Role ARN for assessment-service IRSA"
+}
+
+output "therapist_service_role_arn" {
+  value       = module.eks.therapist_service_role_arn
+  description = "IAM Role ARN for therapist-service IRSA"
+}
+
+output "aws_lb_controller_role_arn" {
+  value       = module.eks.aws_lb_controller_role_arn
+  description = "IAM Role ARN for AWS LB Controller IRSA"
+}
+
+output "external_secrets_role_arn" {
+  value       = module.eks.external_secrets_role_arn
+  description = "IAM Role ARN for External Secrets Operator IRSA"
+}
+
+output "argocd_role_arn" {
+  value       = module.eks.argocd_role_arn
+  description = "IAM Role ARN for ArgoCD Application Controller IRSA"
+}
+
 output "action_required" {
   value = <<-EOT
-    ⚠️  IMPORTANT — MANUAL ACTION REQUIRED:
-    
-    Route 53 hosted zone created for: ${var.domain_name}
-    
-    You MUST update your domain registrar with these nameservers:
-    ${join("\n    ", module.route53.nameservers)}
-    
-    Steps:
-    1. Log in to your domain registrar (Namecheap/GoDaddy/etc.)
-    2. Find DNS settings for wellnest-project.online
-    3. Replace existing nameservers with the 4 above
-    4. Save changes (propagation: 5 minutes to 48 hours)
-    5. Once propagated, ACM cert will auto-validate
-    6. CloudFront will start serving your domain
-    
-    Check propagation: https://dnschecker.org
+  ╔══════════════════════════════════════════════════╗
+  ║   ⚠️  ACTION REQUIRED — UPDATE NAMESERVERS      ║
+  ╠══════════════════════════════════════════════════╣
+  ║  Add these to your domain registrar:            ║
+  ║  ${module.route53.nameservers[0]}               ║
+  ║  ${module.route53.nameservers[1]}               ║
+  ║  ${module.route53.nameservers[2]}               ║
+  ║  ${module.route53.nameservers[3]}               ║
+  ╚══════════════════════════════════════════════════╝
   EOT
   description = "Instructions for manual domain delegation setup"
 }

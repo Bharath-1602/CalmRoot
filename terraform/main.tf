@@ -38,7 +38,8 @@ module "eks" {
 }
 
 module "dynamodb" {
-  source = "./modules/dynamodb"
+  source      = "./modules/dynamodb"
+  kms_key_arn = module.security.kms_key_arn
 }
 
 module "s3" {

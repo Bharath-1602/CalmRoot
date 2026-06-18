@@ -15,10 +15,11 @@ spec:
       labels:
         app: {{ .Values.frontend.name }}
     spec:
+      serviceAccountName: {{ .Values.frontend.serviceAccount.name }}
       topologySpreadConstraints:
         - maxSkew: 1
-          topologyKey: kubernetes.io/hostname
-          whenUnsatisfiable: ScheduleAnyway
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
           labelSelector:
             matchLabels:
               app: {{ .Values.frontend.name }}
@@ -33,15 +34,17 @@ spec:
             httpGet:
               path: /
               port: {{ .Values.frontend.port }}
-            initialDelaySeconds: 15
-            periodSeconds: 20
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
             timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /
               port: {{ .Values.frontend.port }}
             initialDelaySeconds: 10
-            periodSeconds: 15
-            timeoutSeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+            timeoutSeconds: 3
           resources:
             {{- toYaml .Values.frontend.resources | nindent 12 }}

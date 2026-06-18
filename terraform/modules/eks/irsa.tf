@@ -546,3 +546,54 @@ resource "aws_iam_role_policy_attachment" "external_secrets" {
   role       = aws_iam_role.external_secrets.name
   policy_arn = aws_iam_policy.external_secrets_policy.arn
 }
+
+# 6. IAM Role for ArgoCD Application Controller
+resource "aws_iam_role" "argocd" {
+  name = "calmroot-argocd-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Federated = aws_iam_openid_connect_provider.eks.arn
+        }
+        Action = "sts:AssumeRoleWithWebIdentity"
+        Condition = {
+          StringEquals = {
+            "${local.oidc_issuer}:sub" = "system:serviceaccount:argocd:argocd-application-controller"
+            "${local.oidc_issuer}:aud" = "sts.amazonaws.com"
+          }
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Name = "calmroot-argocd-role"
+  }
+}
+
+resource "aws_iam_policy" "argocd_policy" {
+  name        = "calmroot-argocd-policy"
+  description = "Permissions for ArgoCD to describe EKS cluster"
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid      = "DescribeCluster"
+        Effect   = "Allow"
+        Action   = "eks:DescribeCluster"
+        Resource = "arn:aws:eks:us-east-1:${var.aws_account_id}:cluster/${var.project_name}-prod"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "argocd" {
+  role       = aws_iam_role.argocd.name
+  policy_arn = aws_iam_policy.argocd_policy.arn
+}
+

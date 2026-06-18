@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: calmroot
+  namespace: argocd
+spec:
+  description: CalmRoot application project
+  sourceRepos:
+    - https://github.com/Bharath-1602/CalmRoot.git
+  destinations:
+    - namespace: calmroot-prod
+      server: https://kubernetes.default.svc
+    - namespace: external-secrets
+      server: https://kubernetes.default.svc
+    - namespace: envoy-gateway-system
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
