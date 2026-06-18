@@ -58,8 +58,6 @@ module "route53" {
   source                     = "./modules/route53"
   project_name               = var.project_name
   domain_name                = var.domain_name
-  cloudfront_domain_name     = try(module.cloudfront.distribution_domain_name, "placeholder.example.com")
-  cloudfront_hosted_zone_id  = "Z2FDTNDATAQYW2"
   domain_validation_options  = module.acm.domain_validation_options
   certificate_arn            = module.acm.certificate_arn
 }
@@ -67,8 +65,7 @@ module "route53" {
 module "acm" {
   source      = "./modules/acm"
   domain_name = var.domain_name
-  zone_id     = module.route53.zone_id
-  depends_on  = [module.route53]
+  zone_id     = "" # Unused inside acm module, cleared to break cycle
 }
 
 # --- CDN & Security Pass ---
@@ -87,6 +84,27 @@ module "cloudfront" {
   nlb_dns_name             = var.nlb_dns_name
   cloudfront_secret_header = var.cloudfront_secret_header
   depends_on               = [module.acm, module.waf]
+}
+
+# Standalone DNS Records (Declared at root to break CloudFront / Route53 circular dependency)
+resource "aws_route53_record" "apex" {
+  zone_id = module.route53.zone_id
+  name    = var.domain_name
+  type    = "A"
+
+  alias {
+    name                   = module.cloudfront.distribution_domain_name
+    zone_id                = module.cloudfront.distribution_hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "www" {
+  zone_id = module.route53.zone_id
+  name    = "www.${var.domain_name}"
+  type    = "CNAME"
+  ttl     = 300
+  records = [var.domain_name]
 }
 
 module "monitoring" {
