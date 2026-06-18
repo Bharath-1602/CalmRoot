@@ -1,6 +1,6 @@
 # CloudFront CDN Configurations
 
-# 1. Logs S3 Bucket
+# 1. Logs S3 Bucket (must use SSE-S3, NOT KMS for CloudFront logging)
 resource "aws_s3_bucket" "logs" {
   bucket        = "calmroot-cloudfront-logs-006805625766"
   force_destroy = true
@@ -10,7 +10,7 @@ resource "aws_s3_bucket" "logs" {
   }
 }
 
-# Ownership controls
+# Ownership controls - required for CloudFront logging
 resource "aws_s3_bucket_ownership_controls" "logs" {
   bucket = aws_s3_bucket.logs.id
   rule {
@@ -18,35 +18,38 @@ resource "aws_s3_bucket_ownership_controls" "logs" {
   }
 }
 
-# Private ACL
+# ACL must be log-delivery-write for CloudFront
 resource "aws_s3_bucket_acl" "logs" {
   depends_on = [aws_s3_bucket_ownership_controls.logs]
-
-  bucket = aws_s3_bucket.logs.id
-  acl    = "private"
+  bucket     = aws_s3_bucket.logs.id
+  acl        = "log-delivery-write"
 }
 
-# Server side encryption
+# IMPORTANT: CloudFront logs bucket MUST use SSE-S3 (AES256), NOT KMS
 resource "aws_s3_bucket_server_side_encryption_configuration" "logs" {
   bucket = aws_s3_bucket.logs.id
-
   rule {
     apply_server_side_encryption_by_default {
-      kms_master_key_id = var.kms_key_arn
-      sse_algorithm     = "aws:kms"
+      sse_algorithm = "AES256"
     }
-    bucket_key_enabled = true
   }
 }
 
-# Lifecycle log retention (expire logs after 90 days)
+# Block public access
+resource "aws_s3_bucket_public_access_block" "logs" {
+  bucket                  = aws_s3_bucket.logs.id
+  block_public_acls       = false
+  block_public_policy     = true
+  ignore_public_acls      = false
+  restrict_public_buckets = true
+}
+
+# Lifecycle log retention
 resource "aws_s3_bucket_lifecycle_configuration" "logs" {
   bucket = aws_s3_bucket.logs.id
-
   rule {
     id     = "expire-logs"
     status = "Enabled"
-
     filter {}
     expiration {
       days = 90

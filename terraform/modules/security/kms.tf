@@ -1,3 +1,5 @@
+# KMS Master Key for CalmRoot
+
 resource "aws_kms_key" "master" {
   description             = "CalmRoot master encryption key"
   deletion_window_in_days = 7
@@ -7,7 +9,7 @@ resource "aws_kms_key" "master" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid    = "AllowRootAndAdmins"
+        Sid    = "AllowRootFullAccess"
         Effect = "Allow"
         Principal = {
           AWS = "arn:aws:iam::${var.aws_account_id}:root"
@@ -31,15 +33,15 @@ resource "aws_kms_key" "master" {
         Resource = "*"
       },
       {
-        Sid    = "AllowEKSAndSecretsSync"
+        Sid    = "AllowAWSServices"
         Effect = "Allow"
         Principal = {
-          AWS = [
-            "arn:aws:iam::${var.aws_account_id}:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS",
-            "arn:aws:iam::${var.aws_account_id}:role/calmroot-auth-service-role",
-            "arn:aws:iam::${var.aws_account_id}:role/calmroot-assessment-service-role",
-            "arn:aws:iam::${var.aws_account_id}:role/calmroot-therapist-service-role",
-            "arn:aws:iam::${var.aws_account_id}:role/calmroot-external-secrets-role"
+          Service = [
+            "logs.amazonaws.com",
+            "secretsmanager.amazonaws.com",
+            "s3.amazonaws.com",
+            "eks.amazonaws.com",
+            "dynamodb.amazonaws.com"
           ]
         }
         Action = [
@@ -55,7 +57,10 @@ resource "aws_kms_key" "master" {
   })
 
   tags = {
-    Name = "${var.project_name}-kms-key"
+    Name        = "${var.project_name}-kms-key"
+    Project     = var.project_name
+    Environment = "production"
+    ManagedBy   = "terraform"
   }
 }
 
