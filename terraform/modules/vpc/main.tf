@@ -167,7 +167,7 @@ locals {
     ecr_dkr         = "com.amazonaws.us-east-1.ecr.dkr"
     sts             = "com.amazonaws.us-east-1.sts"
     logs            = "com.amazonaws.us-east-1.logs"
-    ses             = "com.amazonaws.us-east-1.email-smtp"
+    # ses             = "com.amazonaws.us-east-1.email-smtp"
     monitoring      = "com.amazonaws.us-east-1.monitoring"
   }
 }
