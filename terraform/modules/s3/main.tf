@@ -99,6 +99,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "exports" {
   rule {
     id     = "transition-to-infrequent-access"
     status = "Enabled"
+    filter {}
 
     transition {
       days          = 90
