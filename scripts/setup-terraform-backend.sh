@@ -5,6 +5,9 @@
 
 set -euo pipefail
 
+# Disable AWS CLI interactive paging
+export AWS_PAGER=""
+
 AWS_REGION="us-east-1"
 S3_BUCKET_NAME="calmroot-terraform-state"
 DYNAMODB_TABLE_NAME="calmroot-terraform-locks"

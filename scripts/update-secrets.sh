@@ -5,6 +5,9 @@
 
 set -euo pipefail
 
+# Disable AWS CLI interactive paging
+export AWS_PAGER=""
+
 AWS_REGION="us-east-1"
 
 # Real values to replace (Change these before running)

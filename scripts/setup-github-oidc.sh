@@ -5,6 +5,9 @@
 
 set -euo pipefail
 
+# Disable AWS CLI interactive paging
+export AWS_PAGER=""
+
 AWS_ACCOUNT_ID="006805625766"
 AWS_REGION="us-east-1"
 ROLE_NAME="calmroot-github-actions-role"
