@@ -28,7 +28,7 @@ resource "aws_iam_role_policy_attachment" "cluster_policy" {
 # EKS Cluster Definition
 resource "aws_eks_cluster" "main" {
   name     = "${var.project_name}-prod"
-  role_arn = aws_iam_role.cluster.role_arn
+  role_arn = aws_iam_role.cluster.arn
   version  = "1.31"
 
   enabled_cluster_log_types = ["api", "audit", "authenticator"]
