@@ -156,8 +156,7 @@ jobs:
           helm upgrade --install external-secrets \
             external-secrets/external-secrets \
             -n external-secrets --create-namespace \
-            --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=\
-"arn:aws:iam::006805625766:role/calmroot-external-secrets-role" \
+            --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=arn:aws:iam::006805625766:role/calmroot-external-secrets-role \
             --wait --timeout 3m
 
       - name: Install AWS Load Balancer Controller
@@ -170,8 +169,7 @@ jobs:
             --set clusterName=${{ env.EKS_CLUSTER }} \
             --set serviceAccount.create=true \
             --set serviceAccount.name=aws-load-balancer-controller \
-            --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=\
-"arn:aws:iam::006805625766:role/calmroot-aws-lb-controller-role" \
+            --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=arn:aws:iam::006805625766:role/calmroot-aws-lb-controller-role \
             --wait --timeout 3m
 
       - name: Install Envoy Gateway
