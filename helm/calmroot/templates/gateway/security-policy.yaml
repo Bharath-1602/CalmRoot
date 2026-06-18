@@ -1,0 +1,34 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: cors-policy
+  namespace: {{ .Values.global.namespace }}
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ .Values.gateway.name }}
+  cors:
+    allowOrigins:
+      - type: StringPrefix
+        value: "https://wellnest-project.online"
+      - type: StringPrefix
+        value: "https://www.wellnest-project.online"
+      - type: StringPrefix
+        value: "http://localhost:5173"
+    allowMethods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+      - PATCH
+    allowHeaders:
+      - authorization
+      - content-type
+      - accept
+      - origin
+      - x-requested-with
+    exposeHeaders:
+      - content-length
+    maxAge: 86400

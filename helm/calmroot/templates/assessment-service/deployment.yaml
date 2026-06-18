@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.assessmentService.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.assessmentService.name }}
+spec:
+  replicas: {{ .Values.assessmentService.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.assessmentService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.assessmentService.name }}
+    spec:
+      serviceAccountName: {{ .Values.assessmentService.serviceAccount.name }}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: {{ .Values.assessmentService.name }}
+      containers:
+        - name: {{ .Values.assessmentService.name }}
+          image: "{{ .Values.global.image.registry }}/{{ .Values.assessmentService.image.repository }}:{{ .Values.global.image.tag }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.assessmentService.port }}
+              name: http
+          envFrom:
+            - configMapRef:
+                name: assessment-service-config
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.assessmentService.secrets.jwtSecretName }}
+                  key: JWT_SECRET
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.assessmentService.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.assessmentService.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.assessmentService.resources | nindent 12 }}

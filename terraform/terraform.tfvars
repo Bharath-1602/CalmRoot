@@ -1,0 +1,10 @@
+aws_account_id           = "006805625766"
+aws_region               = "us-east-1"
+project_name             = "calmroot"
+vpc_cidr                 = "10.0.0.0/16"
+github_username          = "Bharath-1602"
+github_repo              = "CalmRoot"
+alert_email              = "bharath70135@gmail.com"
+domain_name              = "wellnest-project.online"
+nlb_dns_name             = "placeholder.example.com" # Updated after Envoy Gateway deployment
+cloudfront_secret_header = "calmroot-prod-secret-header-123456"

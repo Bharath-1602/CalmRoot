@@ -1,0 +1,62 @@
+name: "Destroy Infrastructure (MANUAL ONLY)"
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "DESTROY" to confirm deletion of all resources'
+        required: true
+        default: 'NO'
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  destroy-infra:
+    name: "Tear Down CalmRoot"
+    if: github.event.inputs.confirm == 'DESTROY'
+    environment: production # Requires manual approval in GitHub
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Install kubectl & Helm
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name calmroot-prod --region us-east-1 || echo "Cluster may not exist, proceeding to Terraform destroy"
+
+      - name: Uninstall Helm Releases
+        run: |
+          helm uninstall calmroot -n calmroot-prod || echo "calmroot release not found"
+          helm uninstall kong -n kong || echo "kong release not found"
+          helm uninstall external-secrets -n external-secrets || echo "external-secrets not found"
+          helm uninstall aws-load-balancer-controller -n kube-system || echo "aws-load-balancer-controller not found"
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.6.0
+
+      - name: Terraform Init
+        run: |
+          cd terraform
+          terraform init
+
+      - name: Terraform Destroy
+        run: |
+          cd terraform
+          terraform destroy -auto-approve

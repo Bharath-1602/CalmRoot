@@ -1,0 +1,19 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .Values.assessmentService.name }}
+  namespace: {{ .Values.global.namespace }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Values.assessmentService.name }}
+  minReplicas: {{ .Values.assessmentService.hpa.minReplicas }}
+  maxReplicas: {{ .Values.assessmentService.hpa.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.assessmentService.hpa.targetCPUUtilizationPercentage }}

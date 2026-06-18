@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.therapistService.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.therapistService.name }}
+spec:
+  replicas: {{ .Values.therapistService.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.therapistService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.therapistService.name }}
+    spec:
+      serviceAccountName: {{ .Values.therapistService.serviceAccount.name }}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: {{ .Values.therapistService.name }}
+      containers:
+        - name: {{ .Values.therapistService.name }}
+          image: "{{ .Values.global.image.registry }}/{{ .Values.therapistService.image.repository }}:{{ .Values.global.image.tag }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.therapistService.port }}
+              name: http
+          envFrom:
+            - configMapRef:
+                name: therapist-service-config
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.therapistService.secrets.jwtSecretName }}
+                  key: JWT_SECRET
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.therapistService.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.therapistService.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.therapistService.resources | nindent 12 }}

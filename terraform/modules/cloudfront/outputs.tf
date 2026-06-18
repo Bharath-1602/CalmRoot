@@ -1,14 +1,14 @@
-output "cloudfront_domain_name" {
-  description = "The DNS domain name of the CloudFront distribution"
-  value       = aws_cloudfront_distribution.cdn.domain_name
+output "distribution_id" {
+  value       = aws_cloudfront_distribution.main.id
+  description = "The CloudFront Distribution ID"
 }
 
-output "cloudfront_hosted_zone_id" {
-  description = "The Hosted Zone ID of the CloudFront distribution"
-  value       = aws_cloudfront_distribution.cdn.hosted_zone_id
+output "distribution_domain_name" {
+  value       = aws_cloudfront_distribution.main.domain_name
+  description = "The CloudFront Distribution Domain Name"
 }
 
-output "cloudfront_distribution_id" {
-  description = "The Distribution ID of CloudFront"
-  value       = aws_cloudfront_distribution.cdn.id
+output "distribution_hosted_zone_id" {
+  value       = aws_cloudfront_distribution.main.hosted_zone_id
+  description = "The CloudFront Distribution Hosted Zone ID (Z2FDTNDATAQYW2)"
 }

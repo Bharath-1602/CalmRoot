@@ -1,0 +1,79 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: auth-routes
+  namespace: {{ .Values.global.namespace }}
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/auth
+        - path:
+            type: PathPrefix
+            value: /api/chat
+        - path:
+            type: PathPrefix
+            value: /api/wellness
+      backendRefs:
+        - name: {{ .Values.authService.name }}
+          port: {{ .Values.authService.port }}
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: assessment-routes
+  namespace: {{ .Values.global.namespace }}
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/assessment
+      backendRefs:
+        - name: {{ .Values.assessmentService.name }}
+          port: {{ .Values.assessmentService.port }}
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: therapist-routes
+  namespace: {{ .Values.global.namespace }}
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/therapist
+        - path:
+            type: PathPrefix
+            value: /api/reminders
+      backendRefs:
+        - name: {{ .Values.therapistService.name }}
+          port: {{ .Values.therapistService.port }}
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: frontend-route
+  namespace: {{ .Values.global.namespace }}
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ .Values.frontend.name }}
+          port: {{ .Values.frontend.port }}

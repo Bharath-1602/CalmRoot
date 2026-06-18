@@ -1,64 +1,149 @@
-resource "aws_cloudfront_distribution" "cdn" {
+# CloudFront CDN Configurations
+
+# 1. Logs S3 Bucket
+resource "aws_s3_bucket" "logs" {
+  bucket        = "calmroot-cloudfront-logs-006805625766"
+  force_destroy = true
+
+  tags = {
+    Name = "${var.project_name}-cloudfront-logs"
+  }
+}
+
+# Ownership controls
+resource "aws_s3_bucket_ownership_controls" "logs" {
+  bucket = aws_s3_bucket.logs.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+# Private ACL
+resource "aws_s3_bucket_acl" "logs" {
+  depends_on = [aws_s3_bucket_ownership_controls.logs]
+
+  bucket = aws_s3_bucket.logs.id
+  acl    = "private"
+}
+
+# Server side encryption
+resource "aws_s3_bucket_server_side_encryption_configuration" "logs" {
+  bucket = aws_s3_bucket.logs.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = var.kms_key_arn
+      sse_algorithm     = "aws:kms"
+    }
+    bucket_key_enabled = true
+  }
+}
+
+# Lifecycle log retention (expire logs after 90 days)
+resource "aws_s3_bucket_lifecycle_configuration" "logs" {
+  bucket = aws_s3_bucket.logs.id
+
+  rule {
+    id     = "expire-logs"
+    status = "Enabled"
+
+    expiration {
+      days = 90
+    }
+  }
+}
+
+# 2. CloudFront Distribution
+resource "aws_cloudfront_distribution" "main" {
   enabled             = true
   is_ipv6_enabled     = true
-  comment             = "CalmRoot CDN Distribution for ${terraform.workspace}"
-  price_class         = "PriceClass_200"
-  aliases             = [var.domain_name, "www.${var.domain_name}"]
-  web_acl_id          = var.waf_arn
+  http_version        = "http2and3"
+  price_class         = "PriceClass_All"
+  comment             = "CalmRoot production distribution"
+  default_root_object = "index.html"
 
+  aliases = [
+    var.domain_name,
+    "www.${var.domain_name}"
+  ]
+
+  # NLB API Origin
   origin {
-    domain_name = var.public_alb_dns
-    origin_id   = "ExternalALB"
+    origin_id   = "calmroot-nlb-origin"
+    domain_name = var.nlb_dns_name
 
     custom_origin_config {
       http_port              = 80
       https_port             = 443
-      origin_protocol_policy = "https-only"
+      origin_protocol_policy = "http-only"
       origin_ssl_protocols   = ["TLSv1.2"]
     }
+
+    custom_header {
+      name  = "X-CloudFront-Secret"
+      value = var.cloudfront_secret_header
+    }
   }
 
-  # Default Cache Behavior (Serving frontend React assets)
-  default_cache_behavior {
-    target_origin_id       = "ExternalALB"
-    viewer_protocol_policy = "redirect-to-https"
-    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
-    cached_methods         = ["GET", "HEAD"]
+  # Frontend Origin (pointing to the same NLB, routes by Envoy)
+  origin {
+    origin_id   = "calmroot-frontend-origin"
+    domain_name = var.nlb_dns_name
 
-    forwarded_values {
-      query_string = true
-      headers      = ["Host", "Origin", "Access-Control-Request-Headers", "Access-Control-Request-Method"]
-      cookies {
-        forward = "all"
-      }
+    custom_origin_config {
+      http_port              = 80
+      https_port             = 443
+      origin_protocol_policy = "http-only"
+      origin_ssl_protocols   = ["TLSv1.2"]
     }
 
-    min_ttl                = 0
-    default_ttl            = 3600
-    max_ttl                = 86400
-    compress               = true
+    custom_header {
+      name  = "X-CloudFront-Secret"
+      value = var.cloudfront_secret_header
+    }
   }
 
-  # API Cache Behavior (Bypassing CDN cache, forwarding dynamic requests)
+  # --- Cache Behaviors ---
+
+  # 1. API Cache Behavior (No Caching, Passes cookies/headers)
   ordered_cache_behavior {
-    path_pattern           = "/api/*"
-    target_origin_id       = "ExternalALB"
+    path_pattern     = "/api/*"
+    target_origin_id = "calmroot-nlb-origin"
+
+    allowed_methods = ["DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"]
+    cached_methods  = ["GET", "HEAD"]
+    compress        = true
+
+    cache_policy_id          = "4135ea2d-6df8-44a3-9df3-4b5a84be39ad" # CachingDisabled Managed Policy
+    origin_request_policy_id = "b689b0a8-53d0-40ab-baf2-68738e2966ac" # AllViewerExceptHostHeader Managed Policy
+    viewer_protocol_policy   = "redirect-to-https"
+  }
+
+  # 2. Frontend Cache Behavior (Default, Cache everything)
+  default_cache_behavior {
+    target_origin_id = "calmroot-frontend-origin"
+
+    allowed_methods = ["GET", "HEAD", "OPTIONS"]
+    cached_methods  = ["GET", "HEAD"]
+    compress        = true
+
+    cache_policy_id        = "658327ea-f89d-4fab-a63d-7e88639e58f6" # CachingOptimized Managed Policy
     viewer_protocol_policy = "redirect-to-https"
-    allowed_methods        = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
-    cached_methods         = ["GET", "HEAD"]
+  }
 
-    forwarded_values {
-      query_string = true
-      headers      = ["*"]
-      cookies {
-        forward = "all"
-      }
-    }
+  # --- Single Page Application Routing (Error Handlers) ---
+  custom_error_response {
+    error_code            = 404
+    response_code         = 200
+    response_page_path    = "/index.html"
+    error_caching_min_ttl = 0
+  }
 
-    min_ttl                = 0
-    default_ttl            = 0
-    max_ttl                = 0
-    compress               = true
+  custom_error_response {
+    error_code            = 403
+    response_code         = 200
+    response_page_path    = "/index.html"
+    error_caching_min_ttl = 0
   }
 
   restrictions {
@@ -73,7 +158,15 @@ resource "aws_cloudfront_distribution" "cdn" {
     minimum_protocol_version = "TLSv1.2_2021"
   }
 
+  web_acl_id = var.waf_arn
+
+  logging_config {
+    bucket          = aws_s3_bucket.logs.bucket_domain_name
+    prefix          = "cloudfront/"
+    include_cookies = false
+  }
+
   tags = {
-    Name = "calmroot-${terraform.workspace}-cloudfront"
+    Name = "${var.project_name}-cdn"
   }
 }

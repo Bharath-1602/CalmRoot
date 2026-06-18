@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: auth-service-config
+  namespace: {{ .Values.global.namespace }}
+data:
+  NODE_ENV: {{ .Values.authService.env.NODE_ENV | quote }}
+  PORT: {{ .Values.authService.env.PORT | quote }}
+  AWS_REGION: {{ .Values.authService.env.AWS_REGION | quote }}
+  DYNAMODB_USERS_TABLE: {{ .Values.authService.env.DYNAMODB_USERS_TABLE | quote }}
+  THERAPIST_PORT: {{ .Values.authService.env.THERAPIST_PORT | quote }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: assessment-service-config
+  namespace: {{ .Values.global.namespace }}
+data:
+  NODE_ENV: {{ .Values.assessmentService.env.NODE_ENV | quote }}
+  PORT: {{ .Values.assessmentService.env.PORT | quote }}
+  AWS_REGION: {{ .Values.assessmentService.env.AWS_REGION | quote }}
+  DYNAMODB_ASSESSMENTS_TABLE: {{ .Values.assessmentService.env.DYNAMODB_ASSESSMENTS_TABLE | quote }}
+  DYNAMODB_TEMPLATES_TABLE: {{ .Values.assessmentService.env.DYNAMODB_TEMPLATES_TABLE | quote }}
+  DYNAMODB_USERS_TABLE: {{ .Values.assessmentService.env.DYNAMODB_USERS_TABLE | quote }}
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: therapist-service-config
+  namespace: {{ .Values.global.namespace }}
+data:
+  NODE_ENV: {{ .Values.therapistService.env.NODE_ENV | quote }}
+  PORT: {{ .Values.therapistService.env.PORT | quote }}
+  AWS_REGION: {{ .Values.therapistService.env.AWS_REGION | quote }}
+  DYNAMODB_SESSIONS_TABLE: {{ .Values.therapistService.env.DYNAMODB_SESSIONS_TABLE | quote }}
+  DYNAMODB_USERS_TABLE: {{ .Values.therapistService.env.DYNAMODB_USERS_TABLE | quote }}
+  DYNAMODB_THERAPIST_PATIENTS_TABLE: {{ .Values.therapistService.env.DYNAMODB_THERAPIST_PATIENTS_TABLE | quote }}
+  CLINICAL_NOTES_BUCKET: {{ .Values.therapistService.env.CLINICAL_NOTES_BUCKET | quote }}
+  EXPORTS_BUCKET: {{ .Values.therapistService.env.EXPORTS_BUCKET | quote }}

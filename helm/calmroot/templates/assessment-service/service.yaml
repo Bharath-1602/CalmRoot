@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.assessmentService.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.assessmentService.name }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.assessmentService.port }}
+      targetPort: {{ .Values.assessmentService.port }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Values.assessmentService.name }}

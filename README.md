@@ -7,7 +7,7 @@ CalmRoot is a modern mental health self-assessment and therapist connect platfor
 ## Tech Stack
 *   **Backend:** Node.js, Express.js (Microservices Architecture)
 *   **Frontend:** React.js 18, Vite, Tailwind CSS, Recharts
-*   **Database:** MongoDB 7.0
+*   **Database:** AWS DynamoDB
 *   **Orchestration:** Docker, Docker Compose
 *   **Gateway:** Nginx (Proxy)
 
@@ -33,7 +33,7 @@ The application is split into 3 distinct microservices to ensure scalability and
     *Update `.env` with secure secrets before moving to production.*
 
 2.  **Build and Run**
-    Use Docker Compose to build and orchestrate all services along with the MongoDB instance:
+    Use Docker Compose to build and orchestrate all services:
     ```bash
     docker compose up -d --build
     ```
@@ -55,7 +55,7 @@ On startup, the system automatically seeds:
 *   **Data Security:** Password hashes are stripped before leaving the `auth-service`. 
 *   **Consent Gating:** Therapists cannot view a patient's mood or assessment history without the patient's explicit boolean consent stored in the auth profile.
 *   **Docker Optimization:** Multi-stage Docker builds are used for Node.js services and React to minimize production image sizes and enhance security.
-*   **Health Checks:** Strict dependency tracking in `docker-compose.yml` ensures services don't start until MongoDB is fully ready.
+*   **Health Checks:** Node.js services run in multi-stage builds and include lightweight HTTP probes.
 
 ## Phase 2 Roadmap
 *   WebRTC integration for actual video calls.

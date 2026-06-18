@@ -1,24 +1,6 @@
 version: "3.8"
 
 services:
-  mongodb:
-    image: mongo:7.0
-    container_name: calmroot-mongodb
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS}
-      MONGO_INITDB_DATABASE: calmroot
-    volumes:
-      - mongodb_data:/data/db
-    networks:
-      - calmroot-net
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
 
   auth-service:
     build: ./services/auth-service
@@ -27,7 +9,6 @@ services:
     environment:
       PORT: 3001
       NODE_ENV: production
-      MONGODB_URI: ${MONGODB_URI}
       JWT_SECRET: ${JWT_SECRET}
       FRONTEND_URL: ${FRONTEND_URL}
       SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
@@ -35,9 +16,6 @@ services:
       SMTP_USER: ${SMTP_USER:-your-email@gmail.com}
       SMTP_PASS: ${SMTP_PASS:-YOUR_GMAIL_APP_PASSWORD}
       SMTP_FROM: ${SMTP_FROM:-your-email@gmail.com}
-    depends_on:
-      mongodb:
-        condition: service_healthy
     networks:
       - calmroot-net
     ports:
@@ -56,13 +34,10 @@ services:
     environment:
       PORT: 3002
       NODE_ENV: production
-      MONGODB_URI: ${MONGODB_URI}
       JWT_SECRET: ${JWT_SECRET}
       AUTH_SERVICE_URL: http://auth-service:3001
       RUN_SEED: "true"
     depends_on:
-      mongodb:
-        condition: service_healthy
       auth-service:
         condition: service_healthy
     networks:
@@ -83,13 +58,10 @@ services:
     environment:
       PORT: 3003
       NODE_ENV: production
-      MONGODB_URI: ${MONGODB_URI}
       JWT_SECRET: ${JWT_SECRET}
       AUTH_SERVICE_URL: http://auth-service:3001
       ASSESSMENT_SERVICE_URL: http://assessment-service:3002
     depends_on:
-      mongodb:
-        condition: service_healthy
       auth-service:
         condition: service_healthy
       assessment-service:
@@ -134,5 +106,3 @@ networks:
   calmroot-net:
     driver: bridge
 
-volumes:
-  mongodb_data:

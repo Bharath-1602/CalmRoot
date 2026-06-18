@@ -1,0 +1,13 @@
+# Production values override for microservice scaling
+
+authService:
+  replicaCount: 3
+
+assessmentService:
+  replicaCount: 2
+
+therapistService:
+  replicaCount: 2
+
+frontend:
+  replicaCount: 3

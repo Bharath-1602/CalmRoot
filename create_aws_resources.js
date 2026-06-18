@@ -103,7 +103,7 @@ const tablesSpec = [
   }
 ];
 
-const bucketName = 'calmroot-clinical-notes';
+const bucketName = 'calmroot-clinical-notes-006805625766';
 
 async function setupDynamoDB() {
   console.log('--- Setting up DynamoDB Tables ---');

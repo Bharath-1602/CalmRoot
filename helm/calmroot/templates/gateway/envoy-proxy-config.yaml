@@ -1,0 +1,27 @@
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: calmroot-proxy-config
+  namespace: envoy-gateway-system
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        type: LoadBalancer
+        annotations:
+          service.beta.kubernetes.io/aws-load-balancer-type: "external"
+          service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+          service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+          service.beta.kubernetes.io/aws-load-balancer-name: "calmroot-nlb"
+          service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+      envoyDeployment:
+        replicas: 2
+        container:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

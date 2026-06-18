@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.authService.name }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: {{ .Values.authService.name }}
+spec:
+  replicas: {{ .Values.authService.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Values.authService.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.authService.name }}
+    spec:
+      serviceAccountName: {{ .Values.authService.serviceAccount.name }}
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: {{ .Values.authService.name }}
+      containers:
+        - name: {{ .Values.authService.name }}
+          image: "{{ .Values.global.image.registry }}/{{ .Values.authService.image.repository }}:{{ .Values.global.image.tag }}"
+          imagePullPolicy: {{ .Values.global.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.authService.port }}
+              name: http
+          envFrom:
+            - configMapRef:
+                name: auth-service-config
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authService.secrets.jwtSecretName }}
+                  key: JWT_SECRET
+            - name: SES_SENDER_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authService.secrets.sesSecretName }}
+                  key: SES_SENDER_EMAIL
+            - name: SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authService.secrets.sesSecretName }}
+                  key: SMTP_HOST
+            - name: SMTP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authService.secrets.sesSecretName }}
+                  key: SMTP_PORT
+            - name: SMTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authService.secrets.sesSecretName }}
+                  key: SMTP_USER
+            - name: SMTP_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authService.secrets.sesSecretName }}
+                  key: SMTP_PASS
+            - name: SMTP_FROM
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.authService.secrets.sesSecretName }}
+                  key: SMTP_FROM
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.authService.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.authService.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+          resources:
+            {{- toYaml .Values.authService.resources | nindent 12 }}

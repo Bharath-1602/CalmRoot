@@ -1,0 +1,303 @@
+name: "Deploy — Build & Ship to EKS"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/**'
+      - 'helm/**'
+  workflow_dispatch:
+    inputs:
+      service:
+        description: 'Service to deploy'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - frontend
+          - auth-service
+          - assessment-service
+          - therapist-service
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  EKS_CLUSTER: calmroot-prod
+  AWS_REGION: us-east-1
+  ECR_REGISTRY: 006805625766.dkr.ecr.us-east-1.amazonaws.com
+
+jobs:
+
+  build-and-push:
+    name: "Build and Push — ${{ matrix.service }}"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - frontend
+          - auth-service
+          - assessment-service
+          - therapist-service
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Check if build needed
+        id: filter
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ github.event.inputs.service }}" = "all" ] || \
+               [ "${{ github.event.inputs.service }}" = "${{ matrix.service }}" ]; then
+              echo "build=true" >> $GITHUB_OUTPUT
+            else
+              echo "build=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "build=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Configure AWS Credentials (OIDC)
+        if: steps.filter.outputs.build == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        if: steps.filter.outputs.build == 'true'
+        run: |
+          aws ecr get-login-password \
+            --region ${{ env.AWS_REGION }} | \
+          docker login \
+            --username AWS \
+            --password-stdin ${{ env.ECR_REGISTRY }}
+
+      - name: Set up Docker Buildx
+        if: steps.filter.outputs.build == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image
+        if: steps.filter.outputs.build == 'true'
+        run: |
+          BUILD_ARGS=""
+          if [ "${{ matrix.service }}" = "frontend" ]; then
+            BUILD_ARGS="--build-arg VITE_AUTH_URL= \
+              --build-arg VITE_ASSESSMENT_URL= \
+              --build-arg VITE_THERAPIST_URL= \
+              --build-arg VITE_CHATBOT_ENABLED=true"
+          fi
+          docker buildx build \
+            --platform linux/amd64 \
+            -t ${{ env.ECR_REGISTRY }}/calmroot/${{ matrix.service }}:${{ github.sha }} \
+            -t ${{ env.ECR_REGISTRY }}/calmroot/${{ matrix.service }}:latest \
+            $BUILD_ARGS \
+            --push \
+            services/${{ matrix.service }}
+
+  install-cluster-tools:
+    name: "Install Cluster Tools"
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -sL \
+            https://dl.k8s.io/release/stable.txt \
+            )/bin/linux/amd64/kubectl"
+          chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name ${{ env.EKS_CLUSTER }} \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Install Gateway API CRDs
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
+          kubectl wait --for condition=established \
+            --timeout=60s \
+            crd/gateways.gateway.networking.k8s.io \
+            crd/httproutes.gateway.networking.k8s.io
+
+      - name: Install Metrics Server
+        run: |
+          helm repo add metrics-server \
+            https://kubernetes-sigs.github.io/metrics-server/
+          helm repo update
+          helm upgrade --install metrics-server \
+            metrics-server/metrics-server \
+            -n kube-system \
+            --set args[0]=--kubelet-insecure-tls \
+            --wait --timeout 2m
+
+      - name: Install External Secrets Operator
+        run: |
+          helm repo add external-secrets \
+            https://charts.external-secrets.io
+          helm repo update
+          helm upgrade --install external-secrets \
+            external-secrets/external-secrets \
+            -n external-secrets --create-namespace \
+            --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=\
+"arn:aws:iam::006805625766:role/calmroot-external-secrets-role" \
+            --wait --timeout 3m
+
+      - name: Install AWS Load Balancer Controller
+        run: |
+          helm repo add eks https://aws.github.io/eks-charts
+          helm repo update
+          helm upgrade --install aws-load-balancer-controller \
+            eks/aws-load-balancer-controller \
+            -n kube-system \
+            --set clusterName=${{ env.EKS_CLUSTER }} \
+            --set serviceAccount.create=true \
+            --set serviceAccount.name=aws-load-balancer-controller \
+            --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"=\
+"arn:aws:iam::006805625766:role/calmroot-aws-lb-controller-role" \
+            --wait --timeout 3m
+
+      - name: Install Envoy Gateway
+        run: |
+          helm repo add envoy-gateway \
+            https://gateway.envoyproxy.io/helm-chart
+          helm repo update
+          helm upgrade --install envoy-gateway \
+            envoy-gateway/gateway-helm \
+            --version v1.3.0 \
+            -n envoy-gateway-system \
+            --create-namespace \
+            --wait --timeout 3m
+
+      - name: Wait for Envoy Gateway Ready
+        run: |
+          kubectl wait \
+            --for=condition=available \
+            deployment/envoy-gateway \
+            -n envoy-gateway-system \
+            --timeout=120s
+
+  deploy-application:
+    name: "Deploy CalmRoot Application"
+    needs: install-cluster-tools
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -sL \
+            https://dl.k8s.io/release/stable.txt \
+            )/bin/linux/amd64/kubectl"
+          chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+
+      - name: Install Helm
+        run: |
+          curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name ${{ env.EKS_CLUSTER }} \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Deploy CalmRoot via Helm
+        run: |
+          helm upgrade --install calmroot ./helm/calmroot \
+            -n calmroot-prod --create-namespace \
+            --set global.image.tag=${{ github.sha }} \
+            --set global.image.registry=${{ env.ECR_REGISTRY }} \
+            -f helm/calmroot/values-prod.yaml \
+            --wait --timeout 5m
+
+      - name: Verify Rollout Status
+        run: |
+          kubectl rollout status deployment/auth-service -n calmroot-prod --timeout=120s
+          kubectl rollout status deployment/assessment-service -n calmroot-prod --timeout=120s
+          kubectl rollout status deployment/therapist-service -n calmroot-prod --timeout=120s
+          kubectl rollout status deployment/frontend -n calmroot-prod --timeout=120s
+
+  verify:
+    name: "End-to-End Verification"
+    needs: deploy-application
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -sL \
+            https://dl.k8s.io/release/stable.txt \
+            )/bin/linux/amd64/kubectl"
+          chmod +x ./kubectl
+          sudo mv ./kubectl /usr/local/bin/kubectl
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name ${{ env.EKS_CLUSTER }} \
+            --region ${{ env.AWS_REGION }}
+
+      - name: Check Gateway Address
+        run: |
+          # Wait up to 3 minutes for NLB DNS allocation
+          NLB_URL=""
+          for i in {1..18}; do
+            NLB_URL=$(kubectl get gateway calmroot-gateway -n calmroot-prod -o jsonpath='{.status.addresses[0].value}' 2>/dev/null || echo "")
+            if [ -n "$NLB_URL" ]; then
+              break
+            fi
+            echo "Waiting for LoadBalancer DNS allocation..."
+            sleep 10
+          done
+          
+          if [ -z "$NLB_URL" ]; then
+            echo "NLB DNS address was not allocated in time."
+            exit 1
+          fi
+          
+          echo "Successfully provisioned NLB: $NLB_URL"
+          echo "NLB_URL=$NLB_URL" >> $GITHUB_ENV
+
+      - name: Run HTTP Verification Probes
+        run: |
+          echo "Probing Frontend route..."
+          curl -fI --connect-timeout 10 http://${{ env.NLB_URL }}/
+          
+          echo "Probing Auth Service health endpoint..."
+          curl -f --connect-timeout 10 http://${{ env.NLB_URL }}/api/auth/health
+          
+          echo "Probing Assessment Service health endpoint..."
+          curl -f --connect-timeout 10 http://${{ env.NLB_URL }}/api/assessment/health
+          
+          echo "Probing Therapist Service health endpoint..."
+          curl -f --connect-timeout 10 http://${{ env.NLB_URL }}/api/therapist/health

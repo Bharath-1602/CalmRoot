@@ -1,9 +1,9 @@
 variable "domain_name" {
-  description = "The domain name for the certificate"
   type        = string
+  description = "The domain name to request the certificate for"
 }
 
 variable "zone_id" {
-  description = "The Route53 Hosted Zone ID for validation record creation"
   type        = string
+  description = "The Route 53 zone ID for DNS validation"
 }

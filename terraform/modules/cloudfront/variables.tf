@@ -1,24 +1,35 @@
 variable "project_name" {
-  description = "Project name for naming resources"
   type        = string
+  description = "Project name"
 }
 
 variable "domain_name" {
-  description = "Base domain name for CNAMEs (e.g., calmroot-project.online)"
   type        = string
-}
-
-variable "public_alb_dns" {
-  description = "DNS name of the public ALB to use as origin"
-  type        = string
+  description = "The application domain name"
 }
 
 variable "certificate_arn" {
-  description = "ARN of the ACM certificate to use with CloudFront"
   type        = string
+  description = "Validated ACM certificate ARN"
 }
 
 variable "waf_arn" {
-  description = "ARN of the WAFv2 Web ACL to associate with CloudFront"
   type        = string
+  description = "WAFv2 Web ACL ARN"
+}
+
+variable "kms_key_arn" {
+  type        = string
+  description = "KMS Master Key ARN"
+}
+
+variable "nlb_dns_name" {
+  type        = string
+  description = "The DNS name of the Network Load Balancer created by Envoy Gateway"
+  default     = "placeholder.example.com"
+}
+
+variable "cloudfront_secret_header" {
+  type        = string
+  description = "Secret origin validation header"
 }
