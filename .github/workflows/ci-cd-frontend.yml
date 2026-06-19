@@ -42,11 +42,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           projectBaseDir: services/frontend
-          args: |
-            -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
-            -Dsonar.organization=bharath-1602
-            -Dsonar.sources=src
-            -Dsonar.exclusions=node_modules/**,dist/**,coverage/**
 
       - name: Send Failure Notification Email
         if: failure()
