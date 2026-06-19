@@ -25,7 +25,7 @@ spec:
               app: {{ .Values.assessmentService.name }}
       containers:
         - name: {{ .Values.assessmentService.name }}
-          image: "{{ .Values.global.image.registry }}/{{ .Values.assessmentService.image.repository }}:{{ .Values.global.image.tag }}"
+          image: "{{ .Values.global.image.registry }}/{{ .Values.assessmentService.image.repository }}:{{ .Values.assessmentService.image.tag | default .Values.global.image.tag | default "latest" }}"
           imagePullPolicy: {{ .Values.global.image.pullPolicy }}
           ports:
             - containerPort: {{ .Values.assessmentService.port }}

@@ -10,12 +10,9 @@ spec:
     name: {{ .Values.gateway.name }}
   cors:
     allowOrigins:
-      - type: StringPrefix
-        value: "https://wellnest-project.online"
-      - type: StringPrefix
-        value: "https://www.wellnest-project.online"
-      - type: StringPrefix
-        value: "http://localhost:5173"
+      - "https://wellnest-project.online"
+      - "https://www.wellnest-project.online"
+      - "http://localhost:5173"
     allowMethods:
       - GET
       - POST
@@ -31,4 +28,4 @@ spec:
       - x-requested-with
     exposeHeaders:
       - content-length
-    maxAge: 86400
+    maxAge: "86400s"
