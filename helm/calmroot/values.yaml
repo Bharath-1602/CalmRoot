@@ -93,7 +93,7 @@ therapistService:
   replicaCount: 2
   image:
     repository: calmroot/therapist-service
-    tag: prod-9feeec31  # therapist-service
+    tag: prod-33fc2262  # therapist-service
   port: 3003
   serviceAccount:
     name: therapist-service-sa
