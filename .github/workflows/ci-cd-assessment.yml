@@ -125,7 +125,7 @@ jobs:
   docker-build-push:
     name: "Docker Build and Push to ECR"
     needs: build-and-scan
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.set_tag.outputs.image_tag }}
@@ -200,7 +200,7 @@ jobs:
   approval-gate:
     name: "Approval Gate (main only)"
     needs: docker-build-push
-    if: github.ref_name == 'main' && github.event_name == 'push'
+    if: github.ref_name == 'main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     environment: production
     runs-on: ubuntu-latest
     steps:
