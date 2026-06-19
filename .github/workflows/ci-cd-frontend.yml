@@ -44,7 +44,7 @@ jobs:
           projectBaseDir: services/frontend
           args: |
             -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
-            -Dsonar.organization=${{ secrets.SONAR_ORGANIZATION }}
+            -Dsonar.organization=bharath-1602
             -Dsonar.sources=src
             -Dsonar.exclusions=node_modules/**,dist/**,coverage/**
 
