@@ -433,6 +433,19 @@ resource "aws_iam_policy" "aws_lb_controller_policy" {
           "elasticloadbalancing:AddTags",
           "elasticloadbalancing:RemoveTags"
         ]
+        Resource = "*"
+        Condition = {
+          "Null" = {
+            "aws:RequestTag/elbv2.k8s.aws/cluster" = "false"
+          }
+        }
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "elasticloadbalancing:AddTags",
+          "elasticloadbalancing:RemoveTags"
+        ]
         Resource = [
           "arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
           "arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*",
