@@ -5,3 +5,11 @@ name: "Deploy — Build & Ship to EKS (Legacy)"
 
 on:
   workflow_dispatch:
+
+jobs:
+  legacy-info:
+    name: "Legacy Pipeline Info"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Show Info
+        run: echo "This workflow is legacy and has been replaced by the individual service-specific GitOps pipelines."
