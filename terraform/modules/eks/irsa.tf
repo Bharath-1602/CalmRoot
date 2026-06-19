@@ -325,7 +325,8 @@ resource "aws_iam_policy" "aws_lb_controller_policy" {
           "elasticloadbalancing:DescribeTargetGroups",
           "elasticloadbalancing:DescribeTargetGroupAttributes",
           "elasticloadbalancing:DescribeTargetHealth",
-          "elasticloadbalancing:DescribeTrustStores"
+          "elasticloadbalancing:DescribeTrustStores",
+          "elasticloadbalancing:DescribeTags"
         ]
         Resource = "*"
       },
