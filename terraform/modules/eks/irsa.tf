@@ -435,8 +435,11 @@ resource "aws_iam_policy" "aws_lb_controller_policy" {
         ]
         Resource = [
           "arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*/*",
+          "arn:aws:elasticloadbalancing:*:*:loadbalancer/net/*",
           "arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*/*",
-          "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*"
+          "arn:aws:elasticloadbalancing:*:*:loadbalancer/app/*",
+          "arn:aws:elasticloadbalancing:*:*:targetgroup/*/*",
+          "arn:aws:elasticloadbalancing:*:*:targetgroup/*"
         ]
         Condition = {
           "Null" = {
