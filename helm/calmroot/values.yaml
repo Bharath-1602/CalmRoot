@@ -62,7 +62,7 @@ assessmentService:
   replicaCount: 2
   image:
     repository: calmroot/assessment-service
-    tag: prod-369e9749  # assessment-service
+    tag: prod-deadebf2  # assessment-service
   port: 3002
   serviceAccount:
     name: assessment-service-sa
