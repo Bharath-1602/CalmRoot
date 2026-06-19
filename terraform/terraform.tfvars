@@ -6,5 +6,5 @@ github_username          = "Bharath-1602"
 github_repo              = "CalmRoot"
 alert_email              = "bharath70135@gmail.com"
 domain_name              = "wellnest-project.online"
-nlb_dns_name             = "placeholder.example.com" # Updated after Envoy Gateway deploy
+nlb_dns_name             = "calmroot-nlb-155c2b19b3451ad8.elb.us-east-1.amazonaws.com"
 cloudfront_secret_header = "calmroot-prod-secret-header-123456"
