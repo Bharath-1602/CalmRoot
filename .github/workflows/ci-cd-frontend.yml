@@ -259,7 +259,11 @@ jobs:
           git config user.email "ci@calmroot.com"
           git add helm/calmroot/values.yaml
           git commit -m "ci: update frontend image tag to ${{ needs.docker-build-push.outputs.image_tag }} [skip ci]"
-          git push
+          for i in {1..5}; do
+            git pull --rebase origin main && git push && exit 0
+            sleep 5
+          done
+          exit 1
 
       - name: Send Helm Update Success Email
         uses: dawidd6/action-send-mail@v3
