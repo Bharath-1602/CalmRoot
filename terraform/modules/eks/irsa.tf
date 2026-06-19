@@ -145,7 +145,9 @@ resource "aws_iam_policy" "assessment_service_policy" {
           var.assessments_table_arn,
           "${var.assessments_table_arn}/index/*",
           var.templates_table_arn,
-          "${var.templates_table_arn}/index/*"
+          "${var.templates_table_arn}/index/*",
+          var.mood_logs_table_arn,
+          "${var.mood_logs_table_arn}/index/*"
         ]
       },
       {

@@ -113,6 +113,7 @@ const MoodLog = {
         if (query.logDate.$gte) {
           skCondition = 'SK >= :skStart';
           expressionAttributeValues[':skStart'] = `MOOD#${query.logDate.$gte}`;
+          delete expressionAttributeValues[':prefix'];
         }
       }
 

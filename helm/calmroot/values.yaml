@@ -6,7 +6,7 @@ global:
 
 frontend:
   name: frontend
-  replicaCount: 2
+  replicaCount: 1
   image:
     repository: calmroot/frontend
     tag: prod-7235972b  # frontend
@@ -28,7 +28,7 @@ frontend:
 
 authService:
   name: auth-service
-  replicaCount: 2
+  replicaCount: 1
   image:
     repository: calmroot/auth-service
     tag: prod-7235972b  # auth-service
@@ -59,7 +59,7 @@ authService:
 
 assessmentService:
   name: assessment-service
-  replicaCount: 2
+  replicaCount: 1
   image:
     repository: calmroot/assessment-service
     tag: prod-7235972b  # assessment-service
@@ -90,7 +90,7 @@ assessmentService:
 
 therapistService:
   name: therapist-service
-  replicaCount: 2
+  replicaCount: 1
   image:
     repository: calmroot/therapist-service
     tag: prod-7235972b  # therapist-service
