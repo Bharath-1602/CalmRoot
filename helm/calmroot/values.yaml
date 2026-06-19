@@ -9,7 +9,7 @@ frontend:
   replicaCount: 2
   image:
     repository: calmroot/frontend
-    tag: prod-374a2976  # frontend
+    tag: prod-7235972b  # frontend
   port: 80
   serviceAccount:
     name: frontend-sa
