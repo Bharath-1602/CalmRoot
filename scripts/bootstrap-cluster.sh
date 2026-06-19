@@ -20,10 +20,9 @@ echo "=================================================================="
 echo "Updating kubeconfig for EKS cluster '$CLUSTER_NAME'..."
 aws eks update-kubeconfig --name "$CLUSTER_NAME" --region "$AWS_REGION"
 
-# 2. Install Gateway API CRDs
-echo "Installing Gateway API CRDs..."
-kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml
-kubectl wait --for condition=established --timeout=60s crd/gateways.gateway.networking.k8s.io crd/httproutes.gateway.networking.k8s.io
+# 2. Clean up manual Gateway API CRDs to avoid Helm Server-Side Apply conflicts
+echo "Cleaning up manual Gateway API CRDs..."
+kubectl delete -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml --ignore-not-found=true
 
 # 3. Install Metrics Server
 echo "Installing Metrics Server..."
@@ -44,6 +43,10 @@ helm upgrade --install external-secrets external-secrets/external-secrets \
   --wait --timeout 3m
 
 # 5. Install AWS Load Balancer Controller
+echo "Retrieving VPC ID for EKS cluster..."
+VPC_ID=$(aws eks describe-cluster --name "$CLUSTER_NAME" --region "$AWS_REGION" --query "cluster.resourcesVpcConfig.vpcId" --output text)
+echo "Found VPC ID: $VPC_ID"
+
 echo "Installing AWS Load Balancer Controller..."
 helm repo add eks https://aws.github.io/eks-charts
 helm repo update
@@ -53,13 +56,13 @@ helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-contro
   --set serviceAccount.create=true \
   --set serviceAccount.name=aws-load-balancer-controller \
   --set serviceAccount.annotations."eks\.amazonaws\.com/role-arn"="arn:aws:iam::${AWS_ACCOUNT_ID}:role/calmroot-aws-lb-controller-role" \
+  --set vpcId="$VPC_ID" \
+  --set region="$AWS_REGION" \
   --wait --timeout 3m
 
 # 6. Install Envoy Gateway
 echo "Installing Envoy Gateway..."
-helm repo add envoy-gateway https://gateway.envoyproxy.io/helm-chart
-helm repo update
-helm upgrade --install envoy-gateway envoy-gateway/gateway-helm \
+helm upgrade --install envoy-gateway oci://docker.io/envoyproxy/gateway-helm \
   --version v1.3.0 \
   -n envoy-gateway-system --create-namespace \
   --wait --timeout 3m
