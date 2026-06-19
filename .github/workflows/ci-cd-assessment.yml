@@ -10,6 +10,7 @@ on:
     branches: [main]
     paths:
       - 'services/assessment-service/**'
+  workflow_dispatch:
 
 permissions:
   id-token: write
