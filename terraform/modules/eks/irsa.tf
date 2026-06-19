@@ -46,13 +46,19 @@ resource "aws_iam_policy" "auth_service_policy" {
         Sid      = "DynamoDBAccess"
         Effect   = "Allow"
         Action   = "dynamodb:*"
-        Resource = [var.users_table_arn]
+        Resource = [
+          var.users_table_arn,
+          "${var.users_table_arn}/index/*"
+        ]
       },
       {
         Sid      = "DynamoDBQueryLogs"
         Effect   = "Allow"
         Action   = "dynamodb:Query"
-        Resource = [var.mood_logs_table_arn]
+        Resource = [
+          var.mood_logs_table_arn,
+          "${var.mood_logs_table_arn}/index/*"
+        ]
       },
       {
         Sid    = "BedrockAccess"
@@ -137,14 +143,19 @@ resource "aws_iam_policy" "assessment_service_policy" {
         Action = "dynamodb:*"
         Resource = [
           var.assessments_table_arn,
-          var.templates_table_arn
+          "${var.assessments_table_arn}/index/*",
+          var.templates_table_arn,
+          "${var.templates_table_arn}/index/*"
         ]
       },
       {
         Sid      = "DynamoDBQueryUsers"
         Effect   = "Allow"
         Action   = "dynamodb:Query"
-        Resource = [var.users_table_arn]
+        Resource = [
+          var.users_table_arn,
+          "${var.users_table_arn}/index/*"
+        ]
       },
       {
         Sid      = "SecretsManagerAccess"
@@ -211,8 +222,11 @@ resource "aws_iam_policy" "therapist_service_policy" {
         Action = "dynamodb:*"
         Resource = [
           var.sessions_table_arn,
+          "${var.sessions_table_arn}/index/*",
           var.patients_table_arn,
-          var.users_table_arn
+          "${var.patients_table_arn}/index/*",
+          var.users_table_arn,
+          "${var.users_table_arn}/index/*"
         ]
       },
       {
