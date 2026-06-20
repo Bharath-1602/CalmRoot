@@ -21,7 +21,7 @@ resource "aws_kms_key" "master" {
         Sid    = "AllowGitHubActions"
         Effect = "Allow"
         Principal = {
-          AWS = aws_iam_role.github_actions.arn
+          AWS = data.aws_iam_role.github_actions.arn
         }
         Action = [
           "kms:Encrypt",
