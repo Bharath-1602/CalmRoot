@@ -3,11 +3,7 @@
 # 1. Clinical Notes Bucket
 resource "aws_s3_bucket" "clinical_notes" {
   bucket        = "calmroot-clinical-notes"
-  force_destroy = false
-
-  lifecycle {
-    prevent_destroy = true
-  }
+  force_destroy = true
 
   tags = {
     Name        = "${var.project_name}-clinical-notes"
@@ -49,11 +45,7 @@ resource "aws_s3_bucket_public_access_block" "clinical_notes" {
 # 2. Daily Exports Bucket
 resource "aws_s3_bucket" "exports" {
   bucket        = "calmroot-daily-exports"
-  force_destroy = false
-
-  lifecycle {
-    prevent_destroy = true
-  }
+  force_destroy = true
 
   tags = {
     Name        = "${var.project_name}-daily-exports"

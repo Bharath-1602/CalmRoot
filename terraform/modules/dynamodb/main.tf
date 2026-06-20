@@ -37,10 +37,6 @@ resource "aws_dynamodb_table" "users" {
     kms_key_arn = var.kms_key_arn
   }
 
-  lifecycle {
-    prevent_destroy = true
-  }
-
   tags = {
     Name        = "calmroot-users"
     Project     = "calmroot"
@@ -96,10 +92,6 @@ resource "aws_dynamodb_table" "sessions" {
     kms_key_arn = var.kms_key_arn
   }
 
-  lifecycle {
-    prevent_destroy = true
-  }
-
   tags = {
     Name        = "calmroot-sessions"
     Project     = "calmroot"
@@ -131,10 +123,6 @@ resource "aws_dynamodb_table" "assessment_templates" {
   server_side_encryption {
     enabled     = true
     kms_key_arn = var.kms_key_arn
-  }
-
-  lifecycle {
-    prevent_destroy = true
   }
 
   tags = {
@@ -170,10 +158,6 @@ resource "aws_dynamodb_table" "assessments" {
     kms_key_arn = var.kms_key_arn
   }
 
-  lifecycle {
-    prevent_destroy = true
-  }
-
   tags = {
     Name        = "calmroot-assessments"
     Project     = "calmroot"
@@ -207,10 +191,6 @@ resource "aws_dynamodb_table" "mood_logs" {
     kms_key_arn = var.kms_key_arn
   }
 
-  lifecycle {
-    prevent_destroy = true
-  }
-
   tags = {
     Name        = "calmroot-mood-logs"
     Project     = "calmroot"
@@ -242,10 +222,6 @@ resource "aws_dynamodb_table" "therapist_patients" {
   server_side_encryption {
     enabled     = true
     kms_key_arn = var.kms_key_arn
-  }
-
-  lifecycle {
-    prevent_destroy = true
   }
 
   tags = {
