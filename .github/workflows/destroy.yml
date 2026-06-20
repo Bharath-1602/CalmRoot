@@ -39,7 +39,7 @@ jobs:
         run: |
           aws eks update-kubeconfig --name calmroot-prod --region us-east-1 || echo "Cluster may not exist, proceeding to Terraform destroy"
 
-      - name: Uninstall Helm Releases & App Resources
+      - name: Uninstall CalmRoot Application & Envoy Gateway
         run: |
           # 1. Uninstall Helm App releases and ArgoCD
           helm uninstall calmroot -n calmroot-prod || echo "calmroot release not found"
@@ -48,18 +48,21 @@ jobs:
           helm uninstall argocd -n argocd || echo "argocd release not found"
           
           # 2. Uninstall Gateway API CRDs & Envoy Gateway
+          # Deleting these will trigger the AWS Load Balancer Controller to clean up the AWS NLB.
           helm uninstall envoy-gateway -n envoy-gateway-system || echo "envoy-gateway not found"
           kubectl delete -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml || echo "Gateway API CRDs not found"
-          
-          # 3. Uninstall other system Operators
-          helm uninstall external-secrets -n external-secrets || echo "external-secrets not found"
-          helm uninstall aws-load-balancer-controller -n kube-system || echo "aws-load-balancer-controller not found"
-          helm uninstall metrics-server -n kube-system || echo "metrics-server not found"
 
       - name: Wait for NLB Deprovisioning
         run: |
-          echo "Waiting 60 seconds for Network Load Balancers and Security Groups to be fully deleted by the LB Controller..."
-          sleep 60
+          echo "Waiting 90 seconds for Network Load Balancers and Security Groups to be fully deleted by the LB Controller..."
+          sleep 90
+
+      - name: Uninstall System Operators (LB Controller & Secrets)
+        run: |
+          # Uninstall other system Operators now that the NLB is safely deprovisioned
+          helm uninstall external-secrets -n external-secrets || echo "external-secrets not found"
+          helm uninstall aws-load-balancer-controller -n kube-system || echo "aws-load-balancer-controller not found"
+          helm uninstall metrics-server -n kube-system || echo "metrics-server not found"
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
