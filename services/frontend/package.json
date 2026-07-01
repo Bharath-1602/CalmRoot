@@ -17,7 +17,7 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.1",
     "recharts": "^2.12.2",
-    "pdfjs-dist": "^2.16.105"
+    "pdfjs-dist": "^4.2.67"
   },
   "devDependencies": {
     "@types/react": "^18.2.56",
